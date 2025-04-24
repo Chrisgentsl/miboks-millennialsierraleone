@@ -25,10 +25,20 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/cash.jpeg
+    - assets/images/cash.png
+    - assets/images/google.png
+    - assets/images/login.jpeg
+    - assets/images/miboks.png
+    - assets/images/onboarding-1.png
+    - assets/images/onboarding-2.png
+    - assets/images/onboarding-3.png
+    - assets/images/signup.jpeg
 
 flutter_native_splash:
   color: "#ffffff" # Background color of the splash screen
-  image: "assets/miboks.png" # Path to the splash screen image
+  image: "assets/images/miboks.png" # Path to the splash screen image
   android: true # Enable splash screen for Android
   ios: true # Enable splash screen for iOS
   web: true # Enable splash screen for web
