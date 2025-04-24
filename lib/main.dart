@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
 
 import 'screens/get_started_screen.dart';
 import 'screens/login_screen.dart';
@@ -10,6 +11,7 @@ import 'screens/onboarding_screen3.dart';
 import 'screens/signup_screen.dart';
 import 'screens/supplier_screen.dart';
 import 'screens/vendor_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,16 +27,16 @@ void main() async {
       measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID'],
     ),
   );
-  runApp(const MainApp());
+  runApp(const SplashScreenApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class SplashScreenApp extends StatelessWidget {
+  const SplashScreenApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/onboarding',
+      home: SplashScreen(),
       routes: {
         '/onboarding': (context) => const OnboardingScreen1(),
         '/onboarding_screen1': (context) => const OnboardingScreen1(),
@@ -49,3 +51,5 @@ class MainApp extends StatelessWidget {
     );
   }
 }
+
+// Main app class that uses our SplashScreen from screens directory
