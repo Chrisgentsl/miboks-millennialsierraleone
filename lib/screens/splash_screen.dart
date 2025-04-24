@@ -33,9 +33,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     // Navigate to the first onboarding screen after 2.5 seconds
     Timer(const Duration(milliseconds: 2500), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const OnboardingScreen1()),
-      );
+      Navigator.of(context).pushReplacementNamed('/onboarding_screen1');
     });
   }
 

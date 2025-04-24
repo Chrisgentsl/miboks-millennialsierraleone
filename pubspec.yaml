@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_native_splash: ^2.4.6
   flutter_dotenv: ^5.0.2
   firebase_core: ^3.13.0
   firebase_auth: ^5.5.2
@@ -36,9 +35,4 @@ flutter:
     - assets/images/onboarding-3.png
     - assets/images/signup.jpeg
 
-flutter_native_splash:
-  color: "#ffffff" # Background color of the splash screen
-  image: "assets/images/miboks.png" # Path to the splash screen image
-  android: true # Enable splash screen for Android
-  ios: true # Enable splash screen for iOS
-  web: true # Enable splash screen for web
+# Using custom splash screen implementation from splash_screen.dart

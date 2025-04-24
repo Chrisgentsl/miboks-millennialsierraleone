@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:async';
 
@@ -13,36 +12,42 @@ import 'screens/supplier_screen.dart';
 import 'screens/vendor_screen.dart';
 import 'screens/splash_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: dotenv.env['FIREBASE_API_KEY']!,
-      authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN']!,
-      projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
-      storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
-      messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
-      appId: dotenv.env['FIREBASE_APP_ID']!,
-      measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID'],
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyBzNzjzZJ95sAgNJeVUd6mn49uPhlqeZ9s",
+      authDomain: "mibok-bf25c.firebaseapp.com",
+      projectId: "mibok-bf25c",
+      storageBucket: "mibok-bf25c.firebasestorage.app",
+      messagingSenderId: "89215333842",
+      appId: "1:89215333842:web:b56fa4671be2dabc78440b",
+      measurementId: "G-RTSMLNJYD1",
     ),
   );
-  runApp(const SplashScreenApp());
+  runApp(const MyApp());
 }
 
-class SplashScreenApp extends StatelessWidget {
-  const SplashScreenApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: SplashScreen(),
+      title: 'Mi Boks',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      initialRoute: '/onboarding',
       routes: {
+        '/': (context) => const SplashScreen(),
         '/onboarding': (context) => const OnboardingScreen1(),
         '/onboarding_screen1': (context) => const OnboardingScreen1(),
         '/onboarding_screen2': (context) => const OnboardingScreen2(),
         '/onboarding_screen3': (context) => const OnboardingScreen3(),
         '/get_started': (context) => const GetStartedScreen(),
+        '/home': (context) => const HomeScreen(),
         '/login_screen': (context) => const LoginScreen(),
         '/signup_screen': (context) => const SignupScreen(),
         '/vendor_screen': (context) => const VendorScreen(),
@@ -53,3 +58,19 @@ class SplashScreenApp extends StatelessWidget {
 }
 
 // Main app class that uses our SplashScreen from screens directory
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mi Boks'),
+      ),
+      body: const Center(
+        child: Text('Welcome to Mi Boks!'),
+      ),
+    );
+  }
+}
