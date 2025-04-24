@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "89215333842",
+    "project_id": "mibok-bf25c",
+    "storage_bucket": "mibok-bf25c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:89215333842:android:2e503b728a7ee25678440b",
+        "android_client_info": {
+          "package_name": "com.example.miboks"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBl2HuY_xQ4mZbZ5P3hFloPttNmO84Dyc8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:89215333842:android:91f019262301c41278440b",
+        "android_client_info": {
+          "package_name": "com.millennial.miboks"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBl2HuY_xQ4mZbZ5P3hFloPttNmO84Dyc8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
