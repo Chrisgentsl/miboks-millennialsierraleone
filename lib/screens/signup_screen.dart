@@ -130,7 +130,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               'Create your account to get started',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.black87,
+                                color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 24),

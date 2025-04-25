@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/login_button2.dart';
 import '../widgets/signup_button.dart';
 import '../logo_widget.dart';
@@ -17,6 +18,37 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _rememberMe = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+  
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _rememberMe = prefs.getBool('rememberMe') ?? false;
+      if (_rememberMe) {
+        _emailController.text = prefs.getString('email') ?? '';
+        _passwordController.text = prefs.getString('password') ?? '';
+      }
+    });
+  }
+  
+  Future<void> _saveCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString('email', _emailController.text);
+      await prefs.setString('password', _passwordController.text);
+      await prefs.setBool('rememberMe', true);
+    } else {
+      await prefs.remove('email');
+      await prefs.remove('password');
+      await prefs.setBool('rememberMe', false);
+    }
+  }
 
   void _showAlert(String message, IconData icon) {
     showDialog(
@@ -62,6 +94,9 @@ class _LoginScreenState extends State<LoginScreen> {
       _showAlert('Please enter your password.', Icons.lock);
       return;
     }
+    
+    // Save credentials if remember me is checked
+    await _saveCredentials();
 
     setState(() {
       _isLoading = true;
@@ -197,6 +232,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       fillColor: Colors.white, // White background
                     ),
                   ),
+                  Row(
+                    children: [
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          unselectedWidgetColor: Colors.white, // Checkbox border color when unchecked
+                        ),
+                        child: Checkbox(
+                          value: _rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberMe = value ?? false;
+                            });
+                          },
+                          checkColor: Colors.white, // Color of the check
+                          activeColor: Color(0xFF6A1B9A), // Background color when checked
+                        ),
+                      ),
+                      Text(
+                        'Remember me',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   Center(
                     child: _isLoading
@@ -208,7 +269,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                   const SizedBox(height: 16),
-                  const SizedBox(height: 16),
                   Center(
                     child: RichText(
                       text: TextSpan(
@@ -216,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black, // Black text for the first part
+                          color: Colors.white, // Black text for the first part
                         ),
                         children: [
                           TextSpan(
