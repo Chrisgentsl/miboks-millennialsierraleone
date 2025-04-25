@@ -43,16 +43,19 @@ class InventoryScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(left: 16.0, top: 16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                // Add item functionality will go here
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF6621DC), // Purple background color
-                foregroundColor: Colors.white, // White text color
+            padding: const EdgeInsets.only(left: 16.0, top: 16.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Add item functionality will go here
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6621DC), // Purple background color
+                  foregroundColor: Colors.white, // White text color
+                ),
+                child: const Text('Add Item'),
               ),
-              child: const Text('Add Item'),
             ),
           ),
           Expanded(
