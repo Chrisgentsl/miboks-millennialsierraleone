@@ -377,12 +377,26 @@ class _SignupScreenState extends State<SignupScreen> {
                                   Navigator.pushReplacementNamed(
                                       context, '/login_screen');
                                 },
-                                child: const Text(
-                                  'Already have an account? Login',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF6A1B9A),
+                                child: RichText(
+                                  text: const TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: 'Already have an account? ',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: 'Login',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF6A1B9A),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

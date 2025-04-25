@@ -27,26 +27,41 @@ class _LoginScreenState extends State<LoginScreen> {
   }
   
   Future<void> _loadSavedCredentials() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _rememberMe = prefs.getBool('rememberMe') ?? false;
-      if (_rememberMe) {
-        _emailController.text = prefs.getString('email') ?? '';
-        _passwordController.text = prefs.getString('password') ?? '';
-      }
-    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _rememberMe = prefs.getBool('rememberMe') ?? false;
+        if (_rememberMe) {
+          _emailController.text = prefs.getString('email') ?? '';
+          _passwordController.text = prefs.getString('password') ?? '';
+        }
+      });
+    } catch (e) {
+      // Handle the case when shared_preferences plugin is not available
+      debugPrint('Error loading saved credentials: $e');
+      // Continue with default values
+      setState(() {
+        _rememberMe = false;
+      });
+    }
   }
   
   Future<void> _saveCredentials() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (_rememberMe) {
-      await prefs.setString('email', _emailController.text);
-      await prefs.setString('password', _passwordController.text);
-      await prefs.setBool('rememberMe', true);
-    } else {
-      await prefs.remove('email');
-      await prefs.remove('password');
-      await prefs.setBool('rememberMe', false);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_rememberMe) {
+        await prefs.setString('email', _emailController.text);
+        await prefs.setString('password', _passwordController.text);
+        await prefs.setBool('rememberMe', true);
+      } else {
+        await prefs.remove('email');
+        await prefs.remove('password');
+        await prefs.setBool('rememberMe', false);
+      }
+    } catch (e) {
+      // Handle the case when shared_preferences plugin is not available
+      debugPrint('Error saving credentials: $e');
+      // Continue with login process without saving credentials
     }
   }
 
