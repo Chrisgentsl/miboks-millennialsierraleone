@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' show max;
 import '../logo_widget.dart';
 import '../widgets/welcome_message_widget.dart';
 import '../widgets/new_button.dart';
@@ -11,6 +12,11 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size for responsive layout
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final isSmallScreen = screenWidth < 600;
+    
     return Scaffold(
       appBar: AppBar(
         leading: const Padding(
@@ -63,12 +69,14 @@ class DashboardScreen extends StatelessWidget {
               child: Wrap(
                 spacing: 16.0, // Horizontal spacing between cards
                 runSpacing: 16.0, // Vertical spacing between cards
-                children: const [
+                alignment: WrapAlignment.center, // Center cards on larger screens
+                children: [
                   SizedBox(
-                    width: 200, // Increased width to fit text
+                    // Responsive width based on screen size
+                    width: isSmallScreen ? (screenWidth - 48) / 2 : 200,
                     height: 116,
                     child: Stack(
-                      children: [
+                      children: const [
                         AnimatedAnalyticCard(
                           icon: Icons.inventory,
                           title: 'Low Stock',
@@ -88,9 +96,10 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 200, // Increased width to fit text
+                    // Responsive width based on screen size
+                    width: isSmallScreen ? (screenWidth - 48) / 2 : 200,
                     height: 116,
-                    child: AnimatedAnalyticCard(
+                    child: const AnimatedAnalyticCard(
                       icon: Icons.currency_exchange, // Changed to represent SLL
                       title: 'Total Sales',
                       value:
@@ -100,11 +109,12 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 200, // Increased width to fit text
+                    // Responsive width based on screen size
+                    width: isSmallScreen ? (screenWidth - 48) / 2 : 200,
                     height: 116,
                     child: Stack(
                       children: [
-                        AnimatedAnalyticCard(
+                        const AnimatedAnalyticCard(
                           icon: Icons.receipt,
                           title: 'Invoices',
                           value:
@@ -117,7 +127,7 @@ class DashboardScreen extends StatelessWidget {
                           top: 8.0,
                           right: 8.0,
                           child: Row(
-                            children: [
+                            children: const [
                               Icon(
                                 Icons.arrow_upward,
                                 color: Colors.green, // Green arrow icon
@@ -139,11 +149,12 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 200, // Increased width to fit text
+                    // Responsive width based on screen size
+                    width: isSmallScreen ? (screenWidth - 48) / 2 : 200,
                     height: 116,
                     child: Stack(
                       children: [
-                        AnimatedAnalyticCard(
+                        const AnimatedAnalyticCard(
                           icon: Icons.people,
                           title: 'Customers',
                           value:
@@ -156,7 +167,7 @@ class DashboardScreen extends StatelessWidget {
                           top: 8.0,
                           right: 8.0,
                           child: Row(
-                            children: [
+                            children: const [
                               Icon(
                                 Icons.arrow_upward,
                                 color: Colors
@@ -182,7 +193,19 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
           ),
-          const AnimatedTableWidget(), // Added the animated table widget under the dashboard cards
+          // Wrap the table widget in a container with horizontal scroll for small screens
+          Container(
+            width: screenWidth,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: SizedBox(
+                // Ensure table has minimum width on small screens
+                width: isSmallScreen ? max(screenWidth, 500) : screenWidth,
+                child: const AnimatedTableWidget(),
+              ),
+            ),
+          ),
           Expanded(
             child: Stack(
               children: [

@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import '../logo_widget.dart';
+import '../widgets/filter_widget.dart';
+import '../widgets/product_view_toggle_widget.dart';
+import '../widgets/product_list_widget.dart';
 
-class InventoryScreen extends StatelessWidget {
+class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
+
+  @override
+  State<InventoryScreen> createState() => _InventoryScreenState();
+}
+
+class _InventoryScreenState extends State<InventoryScreen> {
+  bool _showAllProducts = false;
 
   @override
   Widget build(BuildContext context) {
@@ -101,14 +111,28 @@ class InventoryScreen extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Center(
-              child: Text(
-                'This is the Inventory Screen',
-                style: TextStyle(fontSize: 18),
+          // Filter and View Toggle widgets
+          Row(
+            children: [
+              FilterWidget(
+                onPressed: () {
+                  // Filter functionality will go here
+                },
               ),
-            ),
+              const Spacer(),
+              ProductViewToggleWidget(
+                initialShowAllProducts: _showAllProducts,
+                onViewChanged: (showAllProducts) {
+                  setState(() {
+                    _showAllProducts = showAllProducts;
+                  });
+                },
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
+          // Product list with toggle between grid and list view
+          ProductListWidget(showAllProducts: _showAllProducts),
         ],
       ),
     );

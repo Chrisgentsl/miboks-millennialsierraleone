@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _animationController.forward();
     
     // Navigate to the first onboarding screen after 2.5 seconds
-    Timer(const Duration(milliseconds: 2500), () {
+    Timer(const Duration(milliseconds: 300), () {
       Navigator.of(context).pushReplacementNamed('/onboarding_screen1');
     });
   }
