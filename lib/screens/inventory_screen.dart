@@ -52,22 +52,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, top: 16.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Add item functionality will go here
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6621DC), // Purple background color
-                  foregroundColor: Colors.white, // White text color
-                ),
-                child: const Text('Add Item'),
-              ),
-            ),
-          ),
           // Search input widget
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -135,6 +119,74 @@ class _InventoryScreenState extends State<InventoryScreen> {
           ProductListWidget(showAllProducts: _showAllProducts),
         ],
       ),
+      floatingActionButton: _buildAddItemBubble(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  Widget _buildAddItemBubble() {
+    return GestureDetector(
+      onTap: () => _showAddProductModal(),
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  void _showAddProductModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Add Product',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(labelText: 'Product Name'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(labelText: 'Price'),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Add product logic here
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Add Product'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

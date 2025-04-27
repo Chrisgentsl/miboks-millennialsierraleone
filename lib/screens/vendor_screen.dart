@@ -43,6 +43,72 @@ class _VendorScreenState extends State<VendorScreen> {
     }
   }
 
+  Widget _buildAddItemBubble() {
+    return GestureDetector(
+      onTap: () => _showAddProductModal(),
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  void _showAddProductModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Add Product',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(labelText: 'Product Name'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(labelText: 'Price'),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Add product logic here
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Add Product'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,10 +166,7 @@ class _VendorScreenState extends State<VendorScreen> {
                 ),
                 Expanded(
                   child: Center(
-                    child: Text(
-                      'Content goes here',
-                      style: const TextStyle(fontSize: 16),
-                    ),
+                    child: _buildAddItemBubble(),
                   ),
                 ),
               ],

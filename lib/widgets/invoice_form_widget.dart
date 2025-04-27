@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class InvoiceFormWidget extends StatefulWidget {
   const InvoiceFormWidget({super.key});
@@ -24,17 +25,34 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
   DateTime? _selectedDate;
   bool _isGstEnabled = false;
   final List<Map<String, dynamic>> _items = [];
+  List<ProductModel> _inventoryItems = [];
 
   @override
   void initState() {
     super.initState();
     _generateInvoiceNumber();
+    _fetchProducts();
   }
 
   void _generateInvoiceNumber() {
     final random = Random();
     _invoiceNumber =
         'INV-${random.nextInt(900000) + 100000}'; // Generates a 6-digit random number
+  }
+
+  Future<void> _fetchProducts() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('product').get();
+      setState(() {
+        _inventoryItems = snapshot.docs
+            .map((doc) => ProductModel.fromFirestore(doc))
+            .toList();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching products: $e')),
+      );
+    }
   }
 
   Future<void> _pickDate(BuildContext context) async {
@@ -444,6 +462,23 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ProductModel {
+  final String id;
+  final String name;
+  final double price;
+
+  ProductModel({required this.id, required this.name, required this.price});
+
+  factory ProductModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return ProductModel(
+      id: doc.id,
+      name: data['name'] ?? '',
+      price: data['price']?.toDouble() ?? 0.0,
     );
   }
 }
