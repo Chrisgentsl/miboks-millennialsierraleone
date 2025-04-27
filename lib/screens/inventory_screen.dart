@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../logo_widget.dart';
 import '../widgets/filter_widget.dart';
 import '../widgets/product_view_toggle_widget.dart';
 import '../widgets/product_list_widget.dart';
+import '../models/product_model.dart';
+import '../services/product_service.dart';
+import '../widgets/product_form_dialog.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -13,6 +17,13 @@ class InventoryScreen extends StatefulWidget {
 
 class _InventoryScreenState extends State<InventoryScreen> {
   bool _showAllProducts = false;
+  List<ProductModel> _inventoryItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProducts();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +83,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 decoration: InputDecoration(
                   hintText: 'Search inventory items...',
                   hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF6621DC)),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: Color(0xFF6621DC),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -131,7 +145,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: Colors.blue,
+          color: const Color(0xFF6621DC),
           shape: BoxShape.circle,
         ),
         child: const Icon(
@@ -143,50 +157,30 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void _showAddProductModal() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Add Product',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    decoration: const InputDecoration(labelText: 'Product Name'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    decoration: const InputDecoration(labelText: 'Price'),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Add product logic here
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Add Product'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+      builder: (context) => ProductFormDialog(
+        onSave: (product) async {
+          try {
+            await ProductService().addProduct(product);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Product added successfully!')),
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to add product: $e')),
+            );
+          }
+        },
+      ),
     );
+  }
+
+  void _fetchProducts() {
+    ProductService().getProducts().listen((products) {
+      setState(() {
+        _inventoryItems = products;
+      });
+    });
   }
 }

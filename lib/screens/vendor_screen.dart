@@ -25,10 +25,11 @@ class _VendorScreenState extends State<VendorScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .get();
         if (doc.exists) {
           setState(() {
             fullName = doc['fullName'] ?? '';
@@ -50,13 +51,10 @@ class _VendorScreenState extends State<VendorScreen> {
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: Colors.blue,
+          color: Color(0xFF6621DC),
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -78,14 +76,13 @@ class _VendorScreenState extends State<VendorScreen> {
                 children: [
                   const Text(
                     'Add Product',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    decoration: const InputDecoration(labelText: 'Product Name'),
+                    decoration: const InputDecoration(
+                      labelText: 'Product Name',
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -138,9 +135,12 @@ class _VendorScreenState extends State<VendorScreen> {
                     children: [
                       LogoWidget(
                         size: 40, // Adjust size for the top-left corner
-                        animate: false, // Disable animation for static placement
+                        animate:
+                            false, // Disable animation for static placement
                       ),
-                      const SizedBox(width: 16), // Add spacing between logo and text
+                      const SizedBox(
+                        width: 16,
+                      ), // Add spacing between logo and text
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -164,11 +164,7 @@ class _VendorScreenState extends State<VendorScreen> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Center(
-                    child: _buildAddItemBubble(),
-                  ),
-                ),
+                Expanded(child: Center(child: _buildAddItemBubble())),
               ],
             ),
           ),

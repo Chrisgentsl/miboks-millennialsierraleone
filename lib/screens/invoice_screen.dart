@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../logo_widget.dart';
 import '../widgets/new_button.dart';
 import '../widgets/invoice_form_widget.dart';
@@ -13,11 +14,13 @@ class InvoiceScreen extends StatefulWidget {
 class _InvoiceScreenState extends State<InvoiceScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<ProductModel> _inventoryItems = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _fetchProducts();
   }
 
   @override
@@ -76,9 +79,7 @@ class _InvoiceScreenState extends State<InvoiceScreen>
               ),
             ),
           ),
-          Expanded(
-            child: InvoiceTabs(tabController: _tabController),
-          ),
+          Expanded(child: InvoiceTabs(tabController: _tabController)),
         ],
       ),
     );
@@ -94,15 +95,17 @@ class _InvoiceScreenState extends State<InvoiceScreen>
           color: const Color(0xFF6621DC), // Updated to primary color
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
   void _showAddProductModal() {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController priceController = TextEditingController();
+    final TextEditingController descriptionController = TextEditingController();
+    final TextEditingController stockController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -126,18 +129,57 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: nameController,
                     decoration: const InputDecoration(labelText: 'Product Name'),
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: priceController,
                     decoration: const InputDecoration(labelText: 'Price'),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
+                  TextField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: stockController,
+                    decoration: const InputDecoration(labelText: 'Stock Quantity'),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      // Add product logic here
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      final String name = nameController.text;
+                      final double? price = double.tryParse(priceController.text);
+                      final String description = descriptionController.text;
+                      final int? stock = int.tryParse(stockController.text);
+
+                      if (name.isNotEmpty && price != null && description.isNotEmpty && stock != null) {
+                        try {
+                          await FirebaseFirestore.instance.collection('product').add({
+                            'name': name,
+                            'price': price,
+                            'description': description,
+                            'stock': stock,
+                            'createdAt': FieldValue.serverTimestamp(),
+                          });
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Product added successfully!')),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to add product: $e')),
+                          );
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please fill all fields correctly.')),
+                        );
+                      }
                     },
                     child: const Text('Add Product'),
                   ),
@@ -148,6 +190,21 @@ class _InvoiceScreenState extends State<InvoiceScreen>
         );
       },
     );
+  }
+
+  void _fetchProducts() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('product').get();
+      setState(() {
+        _inventoryItems = snapshot.docs
+            .map((doc) => ProductModel.fromFirestore(doc))
+            .toList();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching products: $e')),
+      );
+    }
   }
 }
 
@@ -171,10 +228,7 @@ class _InvoiceTabsState extends State<InvoiceTabs> {
           indicatorColor: const Color(0xFF6621DC), // Active session color
           labelColor: const Color(0xFF6621DC),
           unselectedLabelColor: Colors.grey,
-          tabs: const [
-            Tab(text: 'All Invoices'),
-            Tab(text: 'Create New'),
-          ],
+          tabs: const [Tab(text: 'All Invoices'), Tab(text: 'Create New')],
         ),
         const Divider(
           // Horizontal line under the tabs
@@ -186,8 +240,8 @@ class _InvoiceTabsState extends State<InvoiceTabs> {
             controller: widget.tabController,
             children: [
               Center(
-                  child: Text(
-                      'All Invoices Content')), // Placeholder for All Invoices
+                child: Text('All Invoices Content'),
+              ), // Placeholder for All Invoices
               SingleChildScrollView(
                 child: InvoiceFormWidget(), // Rendered the InvoiceFormWidget
               ),
@@ -195,6 +249,30 @@ class _InvoiceTabsState extends State<InvoiceTabs> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class ProductModel {
+  final String name;
+  final double price;
+  final String description;
+  final int stock;
+
+  ProductModel({
+    required this.name,
+    required this.price,
+    required this.description,
+    required this.stock,
+  });
+
+  factory ProductModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return ProductModel(
+      name: data['name'] ?? '',
+      price: (data['price'] ?? 0).toDouble(),
+      description: data['description'] ?? '',
+      stock: data['stock'] ?? 0,
     );
   }
 }
