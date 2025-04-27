@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/invoice_model.dart';
 
 class InvoiceFormWidget extends StatefulWidget {
   const InvoiceFormWidget({super.key});
@@ -102,62 +103,33 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
     }
   }
 
-  Future<void> _saveAsPdf() async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text('Invoice',
-                style:
-                    pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 16),
-            pw.Text('Company/Business Name: ${_companyNameController.text}'),
-            pw.Text('Invoice #: $_invoiceNumber'),
-            pw.Text(
-                'Date: ${_selectedDate != null ? DateFormat('yyyy-MM-dd').format(_selectedDate!) : ''}'),
-            pw.Text('Bill To: ${_billToController.text}'),
-            pw.Text('Client Email: ${_clientEmailController.text}'),
-            pw.SizedBox(height: 16),
-            pw.Text('Items:',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            pw.ListView.builder(
-              itemCount: _items.length,
-              itemBuilder: (context, index) {
-                final item = _items[index];
-                return pw.Text(
-                    '${item['description']} - Quantity: ${item['quantity']} x Price: ${item['price']} = Amount: ${item['amount'].toStringAsFixed(2)}');
-              },
-            ),
-            pw.SizedBox(height: 16),
-            pw.Text('Subtotal: ${_calculateSubtotal().toStringAsFixed(2)}'),
-            pw.Text('GST: ${_calculateGst().toStringAsFixed(2)}'),
-            pw.Text('Total: ${_calculateTotal().toStringAsFixed(2)}',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-          ],
-        ),
-      ),
+  void _createInvoice() async {
+    final invoice = InvoiceModel(
+      invoiceNumber: _invoiceNumber,
+      companyName: _companyNameController.text,
+      invoiceDate: _selectedDate ?? DateTime.now(),
+      clientName: _billToController.text,
+      clientEmail: _clientEmailController.text,
+      items: _items.map((item) => InvoiceItem.fromMap(item)).toList(),
+      subtotal: _calculateSubtotal(),
+      tax: _calculateGst(),
+      total: _calculateTotal(),
+      status: InvoiceStatus.unpaid,
+      dueDate: _selectedDate?.add(const Duration(days: 30)) ?? DateTime.now().add(const Duration(days: 30)),
+      userId: 'currentUserId', // Replace with actual user ID from authentication
     );
 
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/invoice.pdf');
-      await file.writeAsBytes(await pdf.save());
+      await FirebaseFirestore.instance.collection('invoices').add(invoice.toMap());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invoice saved as PDF!')),
+        const SnackBar(content: Text('Invoice created successfully!')),
       );
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save PDF: $e')),
+        SnackBar(content: Text('Failed to create invoice: $e')),
       );
     }
-  }
-
-  void _shareInvoice() {
-    // Logic to share the invoice (e.g., using the share_plus package)
-    print('Sharing invoice...');
   }
 
   Widget _buildItemInputRow() {
@@ -393,69 +365,22 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
           _buildSummaryRow('GST:', _calculateGst().toStringAsFixed(2)),
           _buildSummaryRow('Total:', _calculateTotal().toStringAsFixed(2),
               isBold: true),
+          const Divider(color: Colors.grey),
           const SizedBox(height: 16),
-          Divider(color: Colors.grey),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              ElevatedButton(
-                onPressed: _saveAsPdf,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey,
-                  foregroundColor: Colors.black,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                child: const Text(
-                  'Save as PDF',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                onPressed: _shareInvoice,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6621DC),
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                child: const Text(
-                  'Share Invoice',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Center(
+          Align(
+            alignment: Alignment.centerRight,
             child: ElevatedButton(
-              onPressed: () {
-                // Handle form submission
-              },
+              onPressed: _createInvoice,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6621DC),
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
                 ),
               ),
               child: const Text(
-                'Submit Invoice',
+                'Create Invoice',
                 style: TextStyle(fontSize: 16),
               ),
             ),
