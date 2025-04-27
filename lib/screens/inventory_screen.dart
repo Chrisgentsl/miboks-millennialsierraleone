@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../logo_widget.dart';
 import '../widgets/filter_widget.dart';
 import '../widgets/product_view_toggle_widget.dart';
@@ -18,6 +17,7 @@ class InventoryScreen extends StatefulWidget {
 class _InventoryScreenState extends State<InventoryScreen> {
   bool _showAllProducts = false;
   List<ProductModel> _inventoryItems = [];
+  String _selectedCategory = 'All';
 
   @override
   void initState() {
@@ -109,6 +109,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
               ),
             ),
           ),
+          // Category filter
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildCategoryFilter(),
+          ),
           // Filter and View Toggle widgets
           Row(
             children: [
@@ -148,10 +153,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
           color: const Color(0xFF6621DC),
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -159,20 +161,21 @@ class _InventoryScreenState extends State<InventoryScreen> {
   void _showAddProductModal() {
     showDialog(
       context: context,
-      builder: (context) => ProductFormDialog(
-        onSave: (product) async {
-          try {
-            await ProductService().addProduct(product);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Product added successfully!')),
-            );
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to add product: $e')),
-            );
-          }
-        },
-      ),
+      builder:
+          (context) => ProductFormDialog(
+            onSave: (product) async {
+              try {
+                await ProductService().addProduct(product);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Product added successfully!')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to add product: $e')),
+                );
+              }
+            },
+          ),
     );
   }
 
@@ -182,5 +185,57 @@ class _InventoryScreenState extends State<InventoryScreen> {
         _inventoryItems = products;
       });
     });
+  }
+
+  void _filterProductsByCategory(String category) {
+    setState(() {
+      _inventoryItems =
+          _inventoryItems
+              .where((product) => product.category == category)
+              .toList();
+    });
+  }
+
+  Widget _buildCategoryFilter() {
+    return StreamBuilder<List<String>>(
+      stream: ProductService().getCategories(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        final categories = ['All', ...?snapshot.data];
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children:
+                categories.map((category) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: ChoiceChip(
+                      label: Text(category),
+                      selected: _selectedCategory == category,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedCategory = category;
+                          if (category == 'All') {
+                            _fetchProducts();
+                          } else {
+                            _filterProductsByCategory(category);
+                          }
+                        });
+                      },
+                    ),
+                  );
+                }).toList(),
+          ),
+        );
+      },
+    );
   }
 }

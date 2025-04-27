@@ -36,22 +36,12 @@ class ProductService {
   // Add a new product
   Future<String> addProduct(ProductModel product) async {
     try {
-      // Check if Firebase Auth is initialized and user is logged in
-      final auth = FirebaseFirestore.instance.app.options.projectId;
-      if (auth == null) {
-        throw Exception('Authentication required. Please log in to add products.');
-      }
-      
       DocumentReference docRef = await _productsCollection.add(product.toMap());
       return docRef.id;
     } catch (e) {
       debugPrint('Error adding product: $e');
-      
-      // Provide more user-friendly error messages
       if (e.toString().contains('permission-denied')) {
         throw Exception('Permission denied. Please make sure you are logged in with the correct account.');
-      } else if (e.toString().contains('unauthenticated')) {
-        throw Exception('Authentication required. Please log in again.');
       } else {
         throw Exception('Failed to add product: ${e.toString()}');
       }
@@ -61,21 +51,11 @@ class ProductService {
   // Update an existing product
   Future<void> updateProduct(ProductModel product) async {
     try {
-      // Check if Firebase Auth is initialized and user is logged in
-      final auth = FirebaseFirestore.instance.app.options.projectId;
-      if (auth == null) {
-        throw Exception('Authentication required. Please log in to update products.');
-      }
-      
       await _productsCollection.doc(product.id).update(product.toMap());
     } catch (e) {
       debugPrint('Error updating product: $e');
-      
-      // Provide more user-friendly error messages
       if (e.toString().contains('permission-denied')) {
         throw Exception('Permission denied. Please make sure you are logged in with the correct account.');
-      } else if (e.toString().contains('unauthenticated')) {
-        throw Exception('Authentication required. Please log in again.');
       } else {
         throw Exception('Failed to update product: ${e.toString()}');
       }
@@ -85,21 +65,11 @@ class ProductService {
   // Delete a product
   Future<void> deleteProduct(String productId) async {
     try {
-      // Check if Firebase Auth is initialized and user is logged in
-      final auth = FirebaseFirestore.instance.app.options.projectId;
-      if (auth == null) {
-        throw Exception('Authentication required. Please log in to delete products.');
-      }
-      
       await _productsCollection.doc(productId).delete();
     } catch (e) {
       debugPrint('Error deleting product: $e');
-      
-      // Provide more user-friendly error messages
       if (e.toString().contains('permission-denied')) {
         throw Exception('Permission denied. Please make sure you are logged in with the correct account.');
-      } else if (e.toString().contains('unauthenticated')) {
-        throw Exception('Authentication required. Please log in again.');
       } else {
         throw Exception('Failed to delete product: ${e.toString()}');
       }
@@ -135,6 +105,20 @@ class ProductService {
               .map((doc) => ProductModel.fromFirestore(doc))
               .toList();
         });
+  }
+
+  // Get all unique product categories
+  Stream<List<String>> getCategories() {
+    return _productsCollection.snapshots().map((snapshot) {
+      final categories = snapshot.docs
+          .map((doc) => doc['category'] as String?)
+          .where((category) => category != null)
+          .cast<String>() // Cast to non-nullable String
+          .toSet()
+          .toList();
+      categories.sort();
+      return categories;
+    });
   }
 
   // Export inventory to CSV format
