@@ -22,6 +22,7 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _dueDateController = TextEditingController();
   late String _invoiceNumber;
   DateTime? _selectedDate;
   bool _isGstEnabled = false;
@@ -327,6 +328,34 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
               filled: true,
               fillColor: Colors.white,
             ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _dueDateController,
+            decoration: InputDecoration(
+              labelText: 'Due Date',
+              hintText: 'Select due date',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+            readOnly: true,
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate ?? DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime(2101),
+              );
+              if (picked != null) {
+                setState(() {
+                  _selectedDate = picked;
+                  _dueDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                });
+              }
+            },
           ),
           const SizedBox(height: 24),
           const Text(
