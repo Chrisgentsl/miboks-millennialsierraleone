@@ -172,8 +172,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         ElevatedButton(
           onPressed: _submitForm,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF6621DC),
-            foregroundColor: Colors.white,
+            backgroundColor: Colors.white, // Changed from blue to white
+            foregroundColor: Colors.black, // Adjusted text color for contrast
           ),
           child: Text(isEditing ? 'Update' : 'Add'),
         ),

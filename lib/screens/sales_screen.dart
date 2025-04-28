@@ -273,7 +273,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     ElevatedButton(
                       onPressed: _submitSale,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6A1B9A),
+                        backgroundColor: const Color(0xFF6621DC),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 50), // Full width button
                       ),

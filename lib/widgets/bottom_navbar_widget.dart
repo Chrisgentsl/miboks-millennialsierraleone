@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import '../screens/invoice_screen.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/inventory_screen.dart';
@@ -35,36 +36,61 @@ class _BottomNavbarWidgetState extends State<BottomNavbarWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+      bottomNavigationBar: CurvedNavigationBar(
+        index: _selectedIndex,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF6A1B9A), // Purple for active
-        unselectedItemColor: Colors.grey, // Grey for inactive
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+        backgroundColor: Colors.transparent, // Transparent to show curve effect
+        color: const Color(0xFF6621DC),
+        buttonBackgroundColor: const Color(0xFF6621DC),
+        animationDuration: const Duration(milliseconds: 300),
+        items: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.dashboard, color: _selectedIndex == 0 ? Colors.white : Colors.white),
+              if (_selectedIndex == 0)
+                const Text('Dashboard', style: TextStyle(color: Colors.white)),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt),
-            label: 'Invoices',
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.receipt, color: _selectedIndex == 1 ? Colors.white : Colors.white),
+              if (_selectedIndex == 1)
+                const Text('Invoice', style: TextStyle(color: Colors.white)),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Inventory',
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.inventory, color: _selectedIndex == 2 ? Colors.white : Colors.white),
+              if (_selectedIndex == 2)
+                const Text('Inventory', style: TextStyle(color: Colors.white)),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Sales',
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.shopping_cart, color: _selectedIndex == 3 ? Colors.white : Colors.white),
+              if (_selectedIndex == 3)
+                const Text('Sales', style: TextStyle(color: Colors.white)),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Suppliers',
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.people, color: _selectedIndex == 4 ? Colors.white : Colors.white),
+              if (_selectedIndex == 4)
+                const Text('Suppliers', style: TextStyle(color: Colors.white)),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.settings, color: _selectedIndex == 5 ? Colors.white : Colors.white),
+              if (_selectedIndex == 5)
+                const Text('Settings', style: TextStyle(color: Colors.white)),
+            ],
           ),
         ],
       ),
