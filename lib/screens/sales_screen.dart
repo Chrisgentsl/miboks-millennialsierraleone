@@ -91,6 +91,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Customer Name',
                         border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -105,6 +106,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Phone Number',
                         border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.phone),
                       ),
                       keyboardType: TextInputType.phone,
                       validator: (value) {
@@ -120,6 +122,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Address',
                         border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.location_on),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -215,9 +218,38 @@ class _SalesScreenState extends State<SalesScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text('Subtotal: ${_calculateSubtotal().toStringAsFixed(2)}'),
-                    Text('GST: ${_calculateGst().toStringAsFixed(2)}'),
-                    Text('Total: ${_calculateTotal().toStringAsFixed(2)}'),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Subtotal: ${_calculateSubtotal().toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'GST (15%): ${_calculateGst().toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Total: ${_calculateTotal().toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _paymentMethod,

@@ -6,11 +6,7 @@ class ProductFormDialog extends StatefulWidget {
   final ProductModel? product;
   final Function(ProductModel) onSave;
 
-  const ProductFormDialog({
-    super.key,
-    this.product,
-    required this.onSave,
-  });
+  const ProductFormDialog({super.key, this.product, required this.onSave});
 
   @override
   State<ProductFormDialog> createState() => _ProductFormDialogState();
@@ -38,7 +34,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       _priceController.text = widget.product!.price.toString();
       _descriptionController.text = widget.product!.description;
       _categoryController.text = widget.product!.category;
-      _lowStockThresholdController.text = widget.product!.lowStockThreshold.toString();
+      _lowStockThresholdController.text =
+          widget.product!.lowStockThreshold.toString();
     } else {
       // Default values for new product
       _lowStockThresholdController.text = '10';
@@ -121,7 +118,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               TextFormField(
                 controller: _priceController,
                 decoration: const InputDecoration(labelText: 'Price *'),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                 ],
@@ -149,7 +148,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               ),
               TextFormField(
                 controller: _lowStockThresholdController,
-                decoration: const InputDecoration(labelText: 'Low Stock Threshold'),
+                decoration: const InputDecoration(
+                  labelText: 'Low Stock Threshold',
+                ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (value) {
