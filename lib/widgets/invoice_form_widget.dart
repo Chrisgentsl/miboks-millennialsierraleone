@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:intl/intl.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/invoice_model.dart';
 
 class InvoiceFormWidget extends StatefulWidget {
@@ -27,48 +25,18 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
   DateTime? _selectedDate;
   bool _isGstEnabled = false;
   final List<Map<String, dynamic>> _items = [];
-  List<ProductModel> _inventoryItems = [];
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     _generateInvoiceNumber();
-    _fetchProducts();
   }
 
   void _generateInvoiceNumber() {
     final random = Random();
     _invoiceNumber =
         'INV-${random.nextInt(900000) + 100000}'; // Generates a 6-digit random number
-  }
-
-  Future<void> _fetchProducts() async {
-    try {
-      final snapshot = await FirebaseFirestore.instance.collection('product').get();
-      setState(() {
-        _inventoryItems = snapshot.docs
-            .map((doc) => ProductModel.fromFirestore(doc))
-            .toList();
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching products: $e')),
-      );
-    }
-  }
-
-  Future<void> _pickDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
   }
 
   double _calculateSubtotal() {
@@ -101,35 +69,56 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
         _quantityController.clear();
         _priceController.clear();
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all item fields correctly.')),
+      );
     }
   }
 
   void _createInvoice() async {
-    final invoice = InvoiceModel(
-      invoiceNumber: _invoiceNumber,
-      companyName: _companyNameController.text,
-      invoiceDate: _selectedDate ?? DateTime.now(),
-      clientName: _billToController.text,
-      clientEmail: _clientEmailController.text,
-      items: _items.map((item) => InvoiceItem.fromMap(item)).toList(),
-      subtotal: _calculateSubtotal(),
-      tax: _calculateGst(),
-      total: _calculateTotal(),
-      status: InvoiceStatus.unpaid,
-      dueDate: _selectedDate?.add(const Duration(days: 30)) ?? DateTime.now().add(const Duration(days: 30)),
-      userId: 'currentUserId', // Replace with actual user ID from authentication
-    );
+    if (_formKey.currentState!.validate()) {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not authenticated. Please log in.')),
+        );
+        return;
+      }
 
-    try {
-      await FirebaseFirestore.instance.collection('invoices').add(invoice.toMap());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invoice created successfully!')),
+      if (_items.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please add at least one item to the invoice.')),
+        );
+        return;
+      }
+
+      final invoice = InvoiceModel(
+        invoiceNumber: _invoiceNumber,
+        companyName: _companyNameController.text,
+        invoiceDate: _selectedDate ?? DateTime.now(),
+        clientName: _billToController.text,
+        clientEmail: _clientEmailController.text,
+        items: _items.map((item) => InvoiceItem.fromMap(item)).toList(),
+        subtotal: _calculateSubtotal(),
+        tax: _calculateGst(),
+        total: _calculateTotal(),
+        status: InvoiceStatus.unpaid,
+        dueDate: _selectedDate?.add(const Duration(days: 30)) ?? DateTime.now().add(const Duration(days: 30)),
+        userId: userId,
       );
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create invoice: $e')),
-      );
+
+      try {
+        await FirebaseFirestore.instance.collection('invoices').add(invoice.toMap());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invoice created successfully!')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create invoice: $e')),
+        );
+      }
     }
   }
 
@@ -247,174 +236,218 @@ class _InvoiceFormWidgetState extends State<InvoiceFormWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Create Invoice',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF6621DC),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _companyNameController,
-            decoration: InputDecoration(
-              labelText: 'Company/Business Name',
-              hintText: 'Enter company or business name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Create Invoice',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF6621DC),
               ),
-              filled: true,
-              fillColor: Colors.white,
             ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            initialValue: _invoiceNumber,
-            readOnly: true,
-            decoration: InputDecoration(
-              labelText: 'Invoice #',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              filled: true,
-              fillColor: Colors.grey[200],
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _dateController,
-            decoration: InputDecoration(
-              labelText: 'Date',
-              hintText: 'Enter date (e.g., YYYY-MM-DD)',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            onTap: () async {
-              FocusScope.of(context).requestFocus(FocusNode());
-              await _pickDate(context);
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _billToController,
-            decoration: InputDecoration(
-              labelText: 'Bill To',
-              hintText: 'Enter client name or company',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _clientEmailController,
-            decoration: InputDecoration(
-              labelText: 'Client Email',
-              hintText: 'Enter client email address',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _dueDateController,
-            decoration: InputDecoration(
-              labelText: 'Due Date',
-              hintText: 'Select due date',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            readOnly: true,
-            onTap: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: _selectedDate ?? DateTime.now(),
-                firstDate: DateTime.now(),
-                lastDate: DateTime(2101),
-              );
-              if (picked != null) {
-                setState(() {
-                  _selectedDate = picked;
-                  _dueDateController.text = DateFormat('yyyy-MM-dd').format(picked);
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Items',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF6621DC),
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildItemInputRow(),
-          const SizedBox(height: 16),
-          _buildItemList(),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Enable GST (15%)',
-                style: TextStyle(fontSize: 16),
-              ),
-              Switch(
-                value: _isGstEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _isGstEnabled = value;
-                  });
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildSummaryRow(
-              'Subtotal:', _calculateSubtotal().toStringAsFixed(2)),
-          _buildSummaryRow('GST:', _calculateGst().toStringAsFixed(2)),
-          _buildSummaryRow('Total:', _calculateTotal().toStringAsFixed(2),
-              isBold: true),
-          const Divider(color: Colors.grey),
-          const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton(
-              onPressed: _createInvoice,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6621DC),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _companyNameController,
+              decoration: InputDecoration(
+                labelText: 'Company/Business Name',
+                hintText: 'Enter company or business name',
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
                 ),
+                filled: true,
+                fillColor: Colors.white,
               ),
-              child: const Text(
-                'Create Invoice',
-                style: TextStyle(fontSize: 16),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'This field is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              initialValue: _invoiceNumber,
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText: 'Invoice #',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _dateController,
+              decoration: InputDecoration(
+                labelText: 'Date',
+                hintText: 'Enter date (e.g., YYYY-MM-DD)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              readOnly: true,
+              onTap: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedDate ?? DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (picked != null) {
+                  setState(() {
+                    _selectedDate = picked;
+                    _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                  });
+                }
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'This field is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _billToController,
+              decoration: InputDecoration(
+                labelText: 'Bill To',
+                hintText: 'Enter client name or company',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'This field is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _clientEmailController,
+              decoration: InputDecoration(
+                labelText: 'Client Email',
+                hintText: 'Enter client email address',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'This field is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _dueDateController,
+              decoration: InputDecoration(
+                labelText: 'Due Date',
+                hintText: 'Select due date',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              readOnly: true,
+              onTap: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedDate ?? DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime(2101),
+                );
+                if (picked != null) {
+                  setState(() {
+                    _selectedDate = picked;
+                    _dueDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                  });
+                }
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'This field is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Items',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF6621DC),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildItemInputRow(),
+            const SizedBox(height: 16),
+            _buildItemList(),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Enable GST (15%)',
+                  style: TextStyle(fontSize: 16),
+                ),
+                Switch(
+                  value: _isGstEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                      _isGstEnabled = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildSummaryRow(
+                'Subtotal:', _calculateSubtotal().toStringAsFixed(2)),
+            _buildSummaryRow('GST:', _calculateGst().toStringAsFixed(2)),
+            _buildSummaryRow('Total:', _calculateTotal().toStringAsFixed(2),
+                isBold: true),
+            const Divider(color: Colors.grey),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: _createInvoice,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6621DC),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+                child: const Text(
+                  'Create Invoice',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
