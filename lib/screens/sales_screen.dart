@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/product_model.dart';
 import '../logo_widget.dart';
 
 class SalesScreen extends StatefulWidget {
@@ -130,6 +129,96 @@ class _SalesScreenState extends State<SalesScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance.collection('products').snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Error: ${snapshot.error}'));
+                        }
+
+                        final products = snapshot.data?.docs ?? [];
+
+                        return DropdownButtonFormField<Map<String, dynamic>>(
+                          decoration: const InputDecoration(
+                            labelText: 'Select Product',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: products.map((doc) {
+                            final product = doc.data() as Map<String, dynamic>;
+                            return DropdownMenuItem(
+                              value: product,
+                              child: Text(product['name'] ?? 'Unnamed Product'),
+                            );
+                          }).toList(),
+                          onChanged: (selectedProduct) {
+                            if (selectedProduct != null) {
+                              final quantityController = TextEditingController();
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text('Add Quantity for ${selectedProduct['name']}'),
+                                    content: TextFormField(
+                                      controller: quantityController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Quantity',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          final quantity = int.tryParse(quantityController.text) ?? 0;
+                                          if (quantity > 0) {
+                                            _addItem({
+                                              'name': selectedProduct['name'],
+                                              'price': selectedProduct['price'],
+                                              'quantity': quantity,
+                                              'amount': selectedProduct['price'] * quantity,
+                                            });
+                                            Navigator.pop(context);
+                                          }
+                                        },
+                                        child: const Text('Add'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Enable GST (15%)'),
+                        Switch(
+                          value: _isGstEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              _isGstEnabled = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Subtotal: ${_calculateSubtotal().toStringAsFixed(2)}'),
+                    Text('GST: ${_calculateGst().toStringAsFixed(2)}'),
+                    Text('Total: ${_calculateTotal().toStringAsFixed(2)}'),
+                    const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _paymentMethod,
                       decoration: const InputDecoration(
@@ -149,24 +238,26 @@ class _SalesScreenState extends State<SalesScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Enable GST (15%)'),
-                        Switch(
-                          value: _isGstEnabled,
-                          onChanged: (value) {
-                            setState(() {
-                              _isGstEnabled = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _submitSale,
-                      child: const Text('Submit Sale'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6A1B9A),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50), // Full width button
+                      ),
+                      child: MouseRegion(
+                        onEnter: (_) {
+                          setState(() {
+                            // Change color on hover
+                          });
+                        },
+                        onExit: (_) {
+                          setState(() {
+                            // Revert color on hover exit
+                          });
+                        },
+                        child: const Text('Submit Sale'),
+                      ),
                     ),
                   ],
                 ),

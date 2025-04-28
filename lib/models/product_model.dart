@@ -23,9 +23,8 @@ class ProductModel {
     this.lowStockThreshold = 10,
     Timestamp? createdAt,
     Timestamp? updatedAt,
-  }) : 
-    this.createdAt = createdAt ?? Timestamp.now(),
-    this.updatedAt = updatedAt ?? Timestamp.now();
+  }) : createdAt = createdAt ?? Timestamp.now(),
+       updatedAt = updatedAt ?? Timestamp.now();
 
   // Convert ProductModel to Map for Firestore
   Map<String, dynamic> toMap() {
@@ -45,7 +44,7 @@ class ProductModel {
   // Create ProductModel from Firestore document
   factory ProductModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    
+
     return ProductModel(
       id: doc.id,
       name: data['name'] ?? '',

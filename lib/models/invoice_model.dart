@@ -1,11 +1,7 @@
 import 'package:miboks/models/product_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum InvoiceStatus {
-  paid,
-  unpaid,
-  overdue,
-}
+enum InvoiceStatus { paid, unpaid, overdue }
 
 class InvoiceItem {
   final String productName;
@@ -88,9 +84,8 @@ class InvoiceModel {
     this.pdfUrl,
     Timestamp? createdAt,
     Timestamp? updatedAt,
-  }) : 
-    this.createdAt = createdAt ?? Timestamp.now(),
-    this.updatedAt = updatedAt ?? Timestamp.now();
+  }) : createdAt = createdAt ?? Timestamp.now(),
+       updatedAt = updatedAt ?? Timestamp.now();
 
   Map<String, dynamic> toMap() {
     return {
@@ -114,10 +109,13 @@ class InvoiceModel {
 
   factory InvoiceModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    
+
     List<InvoiceItem> items = [];
     if (data['items'] != null) {
-      items = (data['items'] as List).map((item) => InvoiceItem.fromMap(item)).toList();
+      items =
+          (data['items'] as List)
+              .map((item) => InvoiceItem.fromMap(item))
+              .toList();
     }
 
     return InvoiceModel(
@@ -181,5 +179,6 @@ class InvoiceModel {
     );
   }
 
-  bool get isOverdue => DateTime.now().isAfter(dueDate) && status == InvoiceStatus.unpaid;
+  bool get isOverdue =>
+      DateTime.now().isAfter(dueDate) && status == InvoiceStatus.unpaid;
 }

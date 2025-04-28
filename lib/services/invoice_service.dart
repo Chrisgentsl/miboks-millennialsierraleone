@@ -4,8 +4,8 @@ import '../models/invoice_model.dart';
 
 class InvoiceService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final CollectionReference _invoicesCollection = 
-      FirebaseFirestore.instance.collection('invoices');
+  final CollectionReference _invoicesCollection = FirebaseFirestore.instance
+      .collection('invoices');
 
   // Get all invoices
   Stream<List<InvoiceModel>> getInvoices() {
@@ -52,18 +52,17 @@ class InvoiceService {
     try {
       // Check if Firebase Auth is initialized
       final auth = FirebaseFirestore.instance.app.options.projectId;
-      if (auth == null) {
-        throw Exception('Authentication required. Please log in to add invoices.');
-      }
-      
+
       DocumentReference docRef = await _invoicesCollection.add(invoice.toMap());
       return docRef.id;
     } catch (e) {
       debugPrint('Error adding invoice: $e');
-      
+
       // Provide user-friendly error messages
       if (e.toString().contains('permission-denied')) {
-        throw Exception('Permission denied. Please make sure you are logged in with the correct account.');
+        throw Exception(
+          'Permission denied. Please make sure you are logged in with the correct account.',
+        );
       } else if (e.toString().contains('unauthenticated')) {
         throw Exception('Authentication required. Please log in again.');
       } else {
@@ -77,21 +76,20 @@ class InvoiceService {
     try {
       // Check if Firebase Auth is initialized
       final auth = FirebaseFirestore.instance.app.options.projectId;
-      if (auth == null) {
-        throw Exception('Authentication required. Please log in to update invoices.');
-      }
-      
+
       if (invoice.id == null) {
         throw Exception('Invoice ID is required for updates');
       }
-      
+
       await _invoicesCollection.doc(invoice.id).update(invoice.toMap());
     } catch (e) {
       debugPrint('Error updating invoice: $e');
-      
+
       // Provide user-friendly error messages
       if (e.toString().contains('permission-denied')) {
-        throw Exception('Permission denied. Please make sure you are logged in with the correct account.');
+        throw Exception(
+          'Permission denied. Please make sure you are logged in with the correct account.',
+        );
       } else if (e.toString().contains('unauthenticated')) {
         throw Exception('Authentication required. Please log in again.');
       } else {
@@ -105,17 +103,16 @@ class InvoiceService {
     try {
       // Check if Firebase Auth is initialized
       final auth = FirebaseFirestore.instance.app.options.projectId;
-      if (auth == null) {
-        throw Exception('Authentication required. Please log in to delete invoices.');
-      }
-      
+
       await _invoicesCollection.doc(invoiceId).delete();
     } catch (e) {
       debugPrint('Error deleting invoice: $e');
-      
+
       // Provide user-friendly error messages
       if (e.toString().contains('permission-denied')) {
-        throw Exception('Permission denied. Please make sure you are logged in with the correct account.');
+        throw Exception(
+          'Permission denied. Please make sure you are logged in with the correct account.',
+        );
       } else if (e.toString().contains('unauthenticated')) {
         throw Exception('Authentication required. Please log in again.');
       } else {
@@ -125,24 +122,26 @@ class InvoiceService {
   }
 
   // Update invoice status
-  Future<void> updateInvoiceStatus(String invoiceId, InvoiceStatus status) async {
+  Future<void> updateInvoiceStatus(
+    String invoiceId,
+    InvoiceStatus status,
+  ) async {
     try {
       // Check if Firebase Auth is initialized
       final auth = FirebaseFirestore.instance.app.options.projectId;
-      if (auth == null) {
-        throw Exception('Authentication required. Please log in to update invoice status.');
-      }
-      
+
       await _invoicesCollection.doc(invoiceId).update({
         'status': status.name,
         'updatedAt': Timestamp.now(),
       });
     } catch (e) {
       debugPrint('Error updating invoice status: $e');
-      
+
       // Provide user-friendly error messages
       if (e.toString().contains('permission-denied')) {
-        throw Exception('Permission denied. Please make sure you are logged in with the correct account.');
+        throw Exception(
+          'Permission denied. Please make sure you are logged in with the correct account.',
+        );
       } else if (e.toString().contains('unauthenticated')) {
         throw Exception('Authentication required. Please log in again.');
       } else {

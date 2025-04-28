@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../logo_widget.dart';
-import '../widgets/new_button.dart';
 import '../widgets/invoice_form_widget.dart';
 
 class InvoiceScreen extends StatefulWidget {
@@ -35,9 +33,7 @@ class _InvoiceScreenState extends State<InvoiceScreen>
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Invoices'),
-      ),
+      appBar: AppBar(title: const Text('Invoices')),
       body: Column(
         children: [
           TabBar(
@@ -45,20 +41,18 @@ class _InvoiceScreenState extends State<InvoiceScreen>
             indicatorColor: const Color(0xFF6621DC),
             labelColor: const Color(0xFF6621DC),
             unselectedLabelColor: Colors.grey,
-            tabs: const [
-              Tab(text: 'All Invoices'),
-              Tab(text: 'Create New'),
-            ],
+            tabs: const [Tab(text: 'All Invoices'), Tab(text: 'Create New')],
           ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
                 StreamBuilder(
-                  stream: FirebaseFirestore.instance
-                      .collection('invoices')
-                      .where('userId', isEqualTo: userId)
-                      .snapshots(),
+                  stream:
+                      FirebaseFirestore.instance
+                          .collection('invoices')
+                          .where('userId', isEqualTo: userId)
+                          .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -75,16 +69,16 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                       itemBuilder: (context, index) {
                         final invoice = invoices[index].data();
                         return ListTile(
-                          title: Text(invoice['invoiceNumber'] ?? 'Unnamed Invoice'),
+                          title: Text(
+                            invoice['invoiceNumber'] ?? 'Unnamed Invoice',
+                          ),
                           subtitle: Text('Total: ${invoice['total']}'),
                         );
                       },
                     );
                   },
                 ),
-                SingleChildScrollView(
-                  child: InvoiceFormWidget(),
-                ),
+                SingleChildScrollView(child: InvoiceFormWidget()),
               ],
             ),
           ),
@@ -130,15 +124,14 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                 children: [
                   const Text(
                     'Add Product',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Product Name'),
+                    decoration: const InputDecoration(
+                      labelText: 'Product Name',
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -154,38 +147,53 @@ class _InvoiceScreenState extends State<InvoiceScreen>
                   const SizedBox(height: 16),
                   TextField(
                     controller: stockController,
-                    decoration: const InputDecoration(labelText: 'Stock Quantity'),
+                    decoration: const InputDecoration(
+                      labelText: 'Stock Quantity',
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () async {
                       final String name = nameController.text;
-                      final double? price = double.tryParse(priceController.text);
+                      final double? price = double.tryParse(
+                        priceController.text,
+                      );
                       final String description = descriptionController.text;
                       final int? stock = int.tryParse(stockController.text);
 
-                      if (name.isNotEmpty && price != null && description.isNotEmpty && stock != null) {
+                      if (name.isNotEmpty &&
+                          price != null &&
+                          description.isNotEmpty &&
+                          stock != null) {
                         try {
-                          await FirebaseFirestore.instance.collection('product').add({
-                            'name': name,
-                            'price': price,
-                            'description': description,
-                            'stock': stock,
-                            'createdAt': FieldValue.serverTimestamp(),
-                          });
+                          await FirebaseFirestore.instance
+                              .collection('product')
+                              .add({
+                                'name': name,
+                                'price': price,
+                                'description': description,
+                                'stock': stock,
+                                'createdAt': FieldValue.serverTimestamp(),
+                              });
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Product added successfully!')),
+                            const SnackBar(
+                              content: Text('Product added successfully!'),
+                            ),
                           );
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to add product: $e')),
+                            SnackBar(
+                              content: Text('Failed to add product: $e'),
+                            ),
                           );
                         }
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please fill all fields correctly.')),
+                          const SnackBar(
+                            content: Text('Please fill all fields correctly.'),
+                          ),
                         );
                       }
                     },
@@ -202,16 +210,18 @@ class _InvoiceScreenState extends State<InvoiceScreen>
 
   void _fetchProducts() async {
     try {
-      final snapshot = await FirebaseFirestore.instance.collection('product').get();
+      final snapshot =
+          await FirebaseFirestore.instance.collection('product').get();
       setState(() {
-        _inventoryItems = snapshot.docs
-            .map((doc) => ProductModel.fromFirestore(doc))
-            .toList();
+        _inventoryItems =
+            snapshot.docs
+                .map((doc) => ProductModel.fromFirestore(doc))
+                .toList();
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching products: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching products: $e')));
     }
   }
 }

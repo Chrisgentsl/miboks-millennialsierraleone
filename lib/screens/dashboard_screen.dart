@@ -16,7 +16,7 @@ class DashboardScreen extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final isSmallScreen = screenWidth < 600;
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: const Padding(
@@ -69,7 +69,8 @@ class DashboardScreen extends StatelessWidget {
               child: Wrap(
                 spacing: 16.0, // Horizontal spacing between cards
                 runSpacing: 16.0, // Vertical spacing between cards
-                alignment: WrapAlignment.center, // Center cards on larger screens
+                alignment:
+                    WrapAlignment.center, // Center cards on larger screens
                 children: [
                   SizedBox(
                     // Responsive width based on screen size
@@ -170,8 +171,9 @@ class DashboardScreen extends StatelessWidget {
                             children: const [
                               Icon(
                                 Icons.arrow_upward,
-                                color: Colors
-                                    .blue, // Blue arrow icon for customers
+                                color:
+                                    Colors
+                                        .blue, // Blue arrow icon for customers
                                 size: 16.0,
                               ),
                               SizedBox(width: 4.0),
@@ -194,7 +196,7 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           // Wrap the table widget in a container with horizontal scroll for small screens
-          Container(
+          SizedBox(
             width: screenWidth,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,

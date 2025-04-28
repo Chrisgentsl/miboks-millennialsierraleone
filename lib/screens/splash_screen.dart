@@ -3,26 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:miboks/screens/onboarding_screen1.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Setup animation
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    
+
     _animation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOut,
@@ -30,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     // Start animation
     _animationController.forward();
-    
+
     // Navigate to the first onboarding screen after 2.5 seconds
     Timer(const Duration(milliseconds: 300), () {
       Navigator.of(context).pushReplacementNamed('/onboarding_screen1');
@@ -79,10 +80,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               opacity: _animation,
               child: const Text(
                 'Your Business Management Solution',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ),
           ],
