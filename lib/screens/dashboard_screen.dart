@@ -19,15 +19,53 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: const Padding(
-          padding: EdgeInsets.all(8.0),
+        leading: IconButton(
+          icon: const Icon(Icons.menu), // Navbar icon widget
+          onPressed: () {
+            print('Navbar icon pressed');
+          },
+        ),
+        title: Center(
           child: LogoWidget(
-            size: 40, // Adjust size for the top-left corner
+            size: 60, // Increased size for the logo in the center
             animate: false, // Disable animation for static placement
           ),
         ),
-        title: const Text('Dashboard'),
-        actions: [],
+        actions: [
+          IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications),
+                Positioned(
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: const Text(
+                      '3', // Example notification count
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            onPressed: () {
+              print('Notification icon pressed');
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
