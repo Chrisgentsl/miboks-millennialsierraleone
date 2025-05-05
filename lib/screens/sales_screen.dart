@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../logo_widget.dart';
+import '../widgets/orange_money_payment_widget.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -17,6 +18,7 @@ class _SalesScreenState extends State<SalesScreen> {
   final List<Map<String, dynamic>> _selectedItems = [];
   String _paymentMethod = 'Orange Money';
   bool _isGstEnabled = false;
+  String? _orangeMoneyNumber;
 
   double _calculateSubtotal() {
     return _selectedItems.fold(0, (sum, item) => sum + item['amount']);
@@ -36,6 +38,13 @@ class _SalesScreenState extends State<SalesScreen> {
     });
   }
 
+  void _handleOrangeMoneyPayment(String phoneNumber) {
+    setState(() {
+      _orangeMoneyNumber = phoneNumber;
+    });
+    _submitSale();
+  }
+
   void _submitSale() async {
     if (_formKey.currentState!.validate()) {
       final sale = {
@@ -44,6 +53,7 @@ class _SalesScreenState extends State<SalesScreen> {
         'address': _addressController.text,
         'items': _selectedItems,
         'paymentMethod': _paymentMethod,
+        'paymentPhoneNumber': _paymentMethod == 'Orange Money' ? _orangeMoneyNumber : null,
         'gst': _isGstEnabled ? 15 : 0,
         'total': _calculateTotal(),
         'createdAt': Timestamp.now(),
@@ -67,6 +77,49 @@ class _SalesScreenState extends State<SalesScreen> {
         );
       }
     }
+  }
+
+  Widget _buildPaymentSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DropdownButtonFormField<String>(
+          value: _paymentMethod,
+          decoration: const InputDecoration(
+            labelText: 'Payment Method',
+            border: OutlineInputBorder(),
+          ),
+          items: const [
+            DropdownMenuItem(value: 'Orange Money', child: Text('Orange Money')),
+            DropdownMenuItem(value: 'Africell Money', child: Text('Africell Money')),
+            DropdownMenuItem(value: 'Credit', child: Text('Credit')),
+            DropdownMenuItem(value: 'Pay Smoll Smoll', child: Text('Pay Smoll Smoll')),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _paymentMethod = value!;
+              _orangeMoneyNumber = null;
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+        if (_paymentMethod == 'Orange Money' && _selectedItems.isNotEmpty)
+          OrangeMoneyPaymentWidget(
+            amount: _calculateTotal(),
+            onPhoneNumberSubmitted: _handleOrangeMoneyPayment,
+          )
+        else
+          ElevatedButton(
+            onPressed: _submitSale,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6621DC),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 50),
+            ),
+            child: const Text('Submit Sale'),
+          ),
+      ],
+    );
   }
 
   void _showAddSaleForm() {
@@ -232,7 +285,6 @@ class _SalesScreenState extends State<SalesScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Display totals section
                         if (_selectedItems.isNotEmpty) ...[
                           const Divider(),
                           ListView.builder(
@@ -294,46 +346,7 @@ class _SalesScreenState extends State<SalesScreen> {
                           ),
                         ],
 
-                        DropdownButtonFormField<String>(
-                          value: _paymentMethod,
-                          decoration: const InputDecoration(
-                            labelText: 'Payment Method',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: const [
-                            DropdownMenuItem(value: 'Orange Money', child: Text('Orange Money')),
-                            DropdownMenuItem(value: 'Africell Money', child: Text('Africell Money')),
-                            DropdownMenuItem(value: 'Credit', child: Text('Credit')),
-                            DropdownMenuItem(value: 'Pay Smoll Smoll', child: Text('Pay Smoll Smoll')),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _paymentMethod = value!;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _submitSale,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6621DC),
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(double.infinity, 50), // Full width button
-                          ),
-                          child: MouseRegion(
-                            onEnter: (_) {
-                              setState(() {
-                                // Change color on hover
-                              });
-                            },
-                            onExit: (_) {
-                              setState(() {
-                                // Revert color on hover exit
-                              });
-                            },
-                            child: const Text('Submit Sale'),
-                          ),
-                        ),
+                        _buildPaymentSection(),
                       ],
                     ),
                   ),

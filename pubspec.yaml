@@ -37,5 +37,6 @@ flutter:
     - assets/images/onboarding-3.png
     - assets/images/signup.jpeg
     - assets/images/birthday.png
+    - assets/images/orange-money-logo.png
 
 # Using custom splash screen implementation from splash_screen.dart
