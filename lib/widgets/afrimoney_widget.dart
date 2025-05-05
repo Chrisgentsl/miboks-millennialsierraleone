@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
 class AfrimoneyWidget extends StatelessWidget {
-  final Function(String) onPhoneNumberSubmitted;
+  final Function(String, String) onDetailsSubmitted;
 
   const AfrimoneyWidget({
     super.key,
-    required this.onPhoneNumberSubmitted,
+    required this.onDetailsSubmitted,
   });
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController _nameController = TextEditingController();
     final TextEditingController _phoneController = TextEditingController();
 
     return Column(
@@ -24,28 +25,39 @@ class AfrimoneyWidget extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: _phoneController,
+          controller: _nameController,
           decoration: const InputDecoration(
-            labelText: 'Afrimoney Number',
+            labelText: 'Customer Name',
             border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.phone_android, color: Color(0xFF00A859)),
+            prefixIcon: Icon(Icons.person, color: Color(0xFF6621DC)),
           ),
-          keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              onPhoneNumberSubmitted(_phoneController.text);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00A859),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Proceed'),
+        TextFormField(
+          controller: _phoneController,
+          keyboardType: TextInputType.number,
+          maxLength: 8,
+          decoration: const InputDecoration(
+            labelText: 'Phone Number',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.phone, color: Color(0xFF6621DC)),
+            prefixText: '+232 ',
+            counterText: '',
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter a phone number';
+            }
+            if (value.length != 8) {
+              return 'Phone number must be 8 digits';
+            }
+            if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+              return 'Phone number must contain only digits';
+            }
+            return null;
+          },
         ),
+        const SizedBox(height: 16),
       ],
     );
   }

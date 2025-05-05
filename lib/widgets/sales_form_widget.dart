@@ -80,7 +80,9 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const PaymentMethodScreen(),
+        builder: (context) => PaymentMethodScreen(
+          totalAmount: _calculateTotal(),
+        ),
       ),
     );
   }

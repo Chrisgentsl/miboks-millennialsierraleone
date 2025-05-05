@@ -5,7 +5,12 @@ import '../widgets/afrimoney_widget.dart';
 import '../widgets/pay_smoll_smoll_widget.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
-  const PaymentMethodScreen({super.key});
+  final double totalAmount;
+
+  const PaymentMethodScreen({
+    super.key,
+    required this.totalAmount,
+  });
 
   @override
   State<PaymentMethodScreen> createState() => _PaymentMethodScreenState();
@@ -13,11 +18,30 @@ class PaymentMethodScreen extends StatefulWidget {
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   String _selectedPaymentMethod = 'Orange Money';
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  void _handlePayment(String customerName, String phoneNumber, [Map<String, dynamic>? paymentDetails]) {
+    if (_formKey.currentState?.validate() ?? false) {
+      // Handle payment based on selected method and payment details
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Processing $_selectedPaymentMethod payment...')),
+      );
+      Navigator.pop(context); // Return to previous screen after processing
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+            size: 24,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text(
           'Payment Method',
           style: TextStyle(
@@ -27,23 +51,50 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         ),
         backgroundColor: const Color(0xFF6621DC),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PaymentMethodWidget(
-              onPaymentMethodSelected: (method) {
-                setState(() {
-                  _selectedPaymentMethod = method;
-                });
-              },
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PaymentMethodWidget(
+                  onPaymentMethodSelected: (method) {
+                    setState(() {
+                      _selectedPaymentMethod = method;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildPaymentMethodDetails(),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        // Handle form submission
+                        _handlePayment('', ''); // Will be replaced with actual values
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6621DC),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Proceed',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _buildPaymentMethodDetails(),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -53,30 +104,16 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     switch (_selectedPaymentMethod) {
       case 'Orange Money':
         return OrangeMoneyWidget(
-          onPhoneNumberSubmitted: (phoneNumber) {
-            // Handle Orange Money payment
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Orange Money payment initiated for $phoneNumber')),
-            );
-          },
+          onDetailsSubmitted: (name, phone) => _handlePayment(name, phone),
         );
       case 'Afrimoney':
         return AfrimoneyWidget(
-          onPhoneNumberSubmitted: (phoneNumber) {
-            // Handle Afrimoney payment
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Afrimoney payment initiated for $phoneNumber')),
-            );
-          },
+          onDetailsSubmitted: (name, phone) => _handlePayment(name, phone),
         );
       case 'Pay Smoll Smoll':
         return PaySmollSmollWidget(
-          onDetailsSubmitted: (details) {
-            // Handle Pay Smoll Smoll payment
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Pay Smoll Smoll payment initiated with details: $details')),
-            );
-          },
+          totalAmount: widget.totalAmount,
+          onDetailsSubmitted: (name, phone, details) => _handlePayment(name, phone, details),
         );
       default:
         return const Center(
