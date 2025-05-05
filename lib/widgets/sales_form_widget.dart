@@ -15,6 +15,8 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
   List<ProductModel> _products = [];
   ProductModel? _selectedProduct;
   TextEditingController _priceController = TextEditingController();
+  List<Map<String, dynamic>> _selectedProducts = [];
+  bool _isGstEnabled = false;
 
   @override
   void initState() {
@@ -35,6 +37,28 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
     ProductService().getProducts().listen((products) {
       setState(() {
         _products = products;
+      });
+    });
+  }
+
+  double _calculateSubtotal() {
+    return _selectedProducts.fold(0, (sum, item) => sum + (item['price'] * item['quantity']));
+  }
+
+  double _calculateGst() {
+    return _isGstEnabled ? _calculateSubtotal() * 0.15 : 0;
+  }
+
+  double _calculateTotal() {
+    return _calculateSubtotal() + _calculateGst();
+  }
+
+  void _addProduct(ProductModel product, int quantity) {
+    setState(() {
+      _selectedProducts.add({
+        'name': product.name,
+        'price': product.price,
+        'quantity': quantity,
       });
     });
   }
@@ -94,32 +118,85 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
                 );
               }).toList(),
               onChanged: (value) {
-                setState(() {
-                  _selectedProduct = value;
-                  _priceController.text = value?.price.toString() ?? '';
-                });
+                if (value != null) {
+                  final quantityController = TextEditingController();
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Add ${value.name}'),
+                        content: TextFormField(
+                          controller: quantityController,
+                          decoration: const InputDecoration(
+                            labelText: 'Quantity',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              final quantity = int.tryParse(quantityController.text) ?? 0;
+                              if (quantity > 0) {
+                                _addProduct(value, quantity);
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: const Text('Add'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'Quantity',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.format_list_numbered, color: Color(0xFF6621DC)),
+            if (_selectedProducts.isNotEmpty) ...[
+              const Divider(),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _selectedProducts.length,
+                itemBuilder: (context, index) {
+                  final item = _selectedProducts[index];
+                  return ListTile(
+                    title: Text(item['name']),
+                    subtitle: Text('Quantity: ${item['quantity']}'),
+                    trailing: Text('SLL ${(item['price'] * item['quantity']).toStringAsFixed(2)}'),
+                  );
+                },
               ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _priceController,
-              decoration: const InputDecoration(
-                labelText: 'Price',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.attach_money, color: Color(0xFF6621DC)),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Enable GST (15%)'),
+                  Switch(
+                    value: _isGstEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        _isGstEnabled = value;
+                      });
+                    },
+                  ),
+                ],
               ),
-              keyboardType: TextInputType.number,
-              readOnly: true,
-            ),
+              Text('Subtotal: SLL ${_calculateSubtotal().toStringAsFixed(2)}'),
+              Text('GST: SLL ${_calculateGst().toStringAsFixed(2)}'),
+              Text(
+                'Total: SLL ${_calculateTotal().toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF6621DC),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
