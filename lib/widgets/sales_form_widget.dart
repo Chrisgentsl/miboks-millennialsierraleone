@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/product_service.dart';
+import '../models/product_model.dart';
 
 class SalesFormWidget extends StatefulWidget {
   const SalesFormWidget({super.key});
@@ -10,6 +12,9 @@ class SalesFormWidget extends StatefulWidget {
 class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  List<ProductModel> _products = [];
+  ProductModel? _selectedProduct;
+  TextEditingController _priceController = TextEditingController();
 
   @override
   void initState() {
@@ -23,11 +28,21 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
       curve: Curves.easeInOut,
     );
     _animationController.forward();
+    _fetchProducts();
+  }
+
+  void _fetchProducts() {
+    ProductService().getProducts().listen((products) {
+      setState(() {
+        _products = products;
+      });
+    });
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -67,12 +82,23 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
               ],
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            DropdownButtonFormField<ProductModel>(
               decoration: const InputDecoration(
-                labelText: 'Product Name',
+                labelText: 'Select Product',
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.production_quantity_limits, color: Color(0xFF6621DC)),
               ),
+              items: _products.map((product) {
+                return DropdownMenuItem(
+                  value: product,
+                  child: Text(product.name),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedProduct = value;
+                  _priceController.text = value?.price.toString() ?? '';
+                });
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -85,12 +111,14 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
             ),
             const SizedBox(height: 16),
             TextFormField(
+              controller: _priceController,
               decoration: const InputDecoration(
                 labelText: 'Price',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.attach_money, color: Color(0xFF6621DC)),
               ),
               keyboardType: TextInputType.number,
+              readOnly: true,
             ),
             const SizedBox(height: 16),
             SizedBox(
