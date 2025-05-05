@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../services/product_service.dart';
 import '../models/product_model.dart';
+import '../screens/payment_method_screen.dart';
 
 class SalesFormWidget extends StatefulWidget {
   const SalesFormWidget({super.key});
@@ -17,6 +19,7 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
   TextEditingController _priceController = TextEditingController();
   List<Map<String, dynamic>> _selectedProducts = [];
   bool _isGstEnabled = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -61,6 +64,25 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
         'quantity': quantity,
       });
     });
+  }
+
+  void _onProceed() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 2)); // Simulate loading time
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PaymentMethodScreen(),
+      ),
+    );
   }
 
   @override
@@ -198,26 +220,32 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
               ),
             ],
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Handle form submission
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6621DC),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            if (_isLoading)
+              const Center(
+                child: SpinKitCircle(
+                  color: Color(0xFF6621DC),
+                  size: 50.0,
+                ),
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _onProceed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6621DC),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Proceed',
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
-                child: const Text(
-                  'Submit',
-                  style: TextStyle(fontSize: 16),
-                ),
               ),
-            ),
           ],
         ),
       ),
