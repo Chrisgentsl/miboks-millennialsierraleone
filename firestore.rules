@@ -13,6 +13,66 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Rules for the "sales" collection
+    match /sales/{saleId} {
+      // Allow users to read their own sales
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      
+      // Allow users to create sales with proper validation
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.items is list &&
+        request.resource.data.timestamp is timestamp &&
+        request.resource.data.totalAmount is number &&
+        request.resource.data.status in ['pending', 'completed'] &&
+        request.resource.data.paymentMethod in ['Orange Money', 'Pay Smoll Smoll'] &&
+        validatePaymentDetails(request.resource.data);
+      
+      // Allow users to update their own sales status
+      allow update: if request.auth != null && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid &&
+        (request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'lastUpdated']));
+        
+      // Allow users to delete their own sales if they are pending
+      allow delete: if request.auth != null && 
+        resource.data.userId == request.auth.uid &&
+        resource.data.status == 'pending';
+    }
+
+    function validatePaymentDetails(data) {
+      let details = data.paymentDetails;
+      return details is map && 
+        details.customerName is string && 
+        details.customerName.size() > 0 &&
+        details.phoneNumber is string && 
+        details.phoneNumber.size() == 9 &&
+        (
+          // Orange Money validation
+          (data.paymentMethod == 'Orange Money' && 
+            details.keys().hasAll(['customerName', 'phoneNumber', 'amount'])) ||
+          // Pay Smoll Smoll validation
+          (data.paymentMethod == 'Pay Smoll Smoll' && 
+            details.keys().hasAll([
+              'customerName', 
+              'phoneNumber', 
+              'totalInstallments', 
+              'installmentAmount', 
+              'remainingAmount', 
+              'paidInstallments', 
+              'nextPaymentDue'
+            ]) &&
+            details.totalInstallments is number &&
+            details.installmentAmount is number &&
+            details.remainingAmount is number &&
+            details.paidInstallments is number &&
+            details.nextPaymentDue is string
+          )
+        );
+    }
+
     // Rules for signup-related data (if any additional collections are used)
     match /signup_data/{docId} {
       // Allow authenticated users to create signup-related data

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 class OrangeMoneyPaymentWidget extends StatefulWidget {
   final double amount;
-  final Function(String) onPhoneNumberSubmitted;
+  final Function(String, String) onPhoneNumberSubmitted;
 
   const OrangeMoneyPaymentWidget({
     super.key,
@@ -18,11 +18,13 @@ class OrangeMoneyPaymentWidget extends StatefulWidget {
 class _OrangeMoneyPaymentWidgetState extends State<OrangeMoneyPaymentWidget> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
+  final _nameController = TextEditingController();
   bool _isSubmitting = false;
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -32,6 +34,13 @@ class _OrangeMoneyPaymentWidgetState extends State<OrangeMoneyPaymentWidget> {
     }
     if (value.length != 9) {
       return 'Phone number must be 9 digits';
+    }
+    return null;
+  }
+
+  String? _validateName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Customer name is required';
     }
     return null;
   }
@@ -46,7 +55,7 @@ class _OrangeMoneyPaymentWidgetState extends State<OrangeMoneyPaymentWidget> {
     try {
       // In a real app, you would integrate with Orange Money API here
       await Future.delayed(const Duration(seconds: 2)); // Simulated API call
-      widget.onPhoneNumberSubmitted(_phoneController.text);
+      widget.onPhoneNumberSubmitted(_nameController.text, _phoneController.text);
     } finally {
       if (mounted) {
         setState(() {
@@ -86,6 +95,15 @@ class _OrangeMoneyPaymentWidgetState extends State<OrangeMoneyPaymentWidget> {
                 ],
               ),
               const SizedBox(height: 24),
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Customer Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: _validateName,
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
                 decoration: const InputDecoration(

@@ -25,8 +25,9 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       case 'Orange Money':
         return OrangeMoneyPaymentWidget(
           amount: widget.totalAmount,
-          onPhoneNumberSubmitted: (phoneNumber) {
+          onPhoneNumberSubmitted: (name, phoneNumber) {
             widget.onPaymentComplete('Orange Money', {
+              'customerName': name,
               'phoneNumber': phoneNumber,
               'amount': widget.totalAmount,
             });
