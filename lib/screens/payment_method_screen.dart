@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import '../widgets/payment_method_widget.dart';
-import '../widgets/orange_money_widget.dart';
-import '../widgets/afrimoney_widget.dart';
+import '../widgets/orange_money_payment_widget.dart';
 import '../widgets/pay_smoll_smoll_widget.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   final double totalAmount;
+  final Function(String, Map<String, dynamic>?) onPaymentComplete;
 
   const PaymentMethodScreen({
     super.key,
     required this.totalAmount,
+    required this.onPaymentComplete,
   });
 
   @override
@@ -17,16 +18,33 @@ class PaymentMethodScreen extends StatefulWidget {
 }
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
-  String _selectedPaymentMethod = 'Orange Money';
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String _selectedPaymentMethod = '';
 
-  void _handlePayment(String customerName, String phoneNumber, [Map<String, dynamic>? paymentDetails]) {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Handle payment based on selected method and payment details
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Processing $_selectedPaymentMethod payment...')),
-      );
-      Navigator.pop(context); // Return to previous screen after processing
+  Widget _buildPaymentWidget() {
+    switch (_selectedPaymentMethod) {
+      case 'Orange Money':
+        return OrangeMoneyPaymentWidget(
+          amount: widget.totalAmount,
+          onPhoneNumberSubmitted: (phoneNumber) {
+            widget.onPaymentComplete('Orange Money', {
+              'phoneNumber': phoneNumber,
+              'amount': widget.totalAmount,
+            });
+          },
+        );
+      case 'Pay Smoll Smoll':
+        return PaySmollSmollWidget(
+          totalAmount: widget.totalAmount,
+          onDetailsSubmitted: (name, phone, details) {
+            widget.onPaymentComplete('Pay Smoll Smoll', {
+              'customerName': name,
+              'phoneNumber': phone,
+              ...details,
+            });
+          },
+        );
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -34,91 +52,25 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-            size: 24,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Payment Method',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: const Color(0xFF6621DC),
+        title: const Text('Payment Method'),
+        backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PaymentMethodWidget(
-                  onPaymentMethodSelected: (method) {
-                    setState(() {
-                      _selectedPaymentMethod = method;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildPaymentMethodDetails(),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        // Handle form submission
-                        _handlePayment('', ''); // Will be replaced with actual values
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6621DC),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Proceed',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
-              ],
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            PaymentMethodWidget(
+              onPaymentMethodSelected: (method) {
+                setState(() {
+                  _selectedPaymentMethod = method;
+                });
+              },
             ),
-          ),
+            const SizedBox(height: 16),
+            _buildPaymentWidget(),
+          ],
         ),
       ),
     );
-  }
-
-  Widget _buildPaymentMethodDetails() {
-    switch (_selectedPaymentMethod) {
-      case 'Orange Money':
-        return OrangeMoneyWidget(
-          onDetailsSubmitted: (name, phone) => _handlePayment(name, phone),
-        );
-      case 'Afrimoney':
-        return AfrimoneyWidget(
-          onDetailsSubmitted: (name, phone) => _handlePayment(name, phone),
-        );
-      case 'Pay Smoll Smoll':
-        return PaySmollSmollWidget(
-          totalAmount: widget.totalAmount,
-          onDetailsSubmitted: (name, phone, details) => _handlePayment(name, phone, details),
-        );
-      default:
-        return const Center(
-          child: Text('Please select a payment method'),
-        );
-    }
   }
 }

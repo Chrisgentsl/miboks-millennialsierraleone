@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../services/product_service.dart';
+import '../services/sales_service.dart';
 import '../models/product_model.dart';
+import '../models/sales_model.dart';
 import '../screens/payment_method_screen.dart';
 
 class SalesFormWidget extends StatefulWidget {
@@ -14,8 +16,10 @@ class SalesFormWidget extends StatefulWidget {
 class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  final ProductService _productService = ProductService();
+  final SalesService _salesService = SalesService();
+  
   List<ProductModel> _products = [];
-  ProductModel? _selectedProduct;
   TextEditingController _priceController = TextEditingController();
   List<Map<String, dynamic>> _selectedProducts = [];
   bool _isGstEnabled = false;
@@ -37,7 +41,7 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
   }
 
   void _fetchProducts() {
-    ProductService().getProducts().listen((products) {
+    _productService.getProducts().listen((products) {
       setState(() {
         _products = products;
       });
@@ -59,6 +63,7 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
   void _addProduct(ProductModel product, int quantity) {
     setState(() {
       _selectedProducts.add({
+        'id': product.id,
         'name': product.name,
         'price': product.price,
         'quantity': quantity,
@@ -66,25 +71,85 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
     });
   }
 
+  Future<void> _createSale(String paymentMethod, Map<String, dynamic>? paymentDetails) async {
+    try {
+      final saleItems = _selectedProducts.map((product) => 
+        SaleItem(
+          productId: product['id'],
+          quantity: product['quantity'],
+        )
+      ).toList();
+
+      final sale = SaleModel(
+        id: '', // This will be set by Firestore
+        items: saleItems,
+        timestamp: DateTime.now(),
+        status: paymentMethod == 'Pay Smoll Smoll' ? 'pending' : 'completed',
+        paymentMethod: paymentMethod,
+        paymentDetails: paymentDetails,
+        totalAmount: _calculateTotal(),
+      );
+
+      await _salesService.createSale(sale);
+      
+      if (mounted) {
+        Navigator.of(context).pop(); // Close the form
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sale completed successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating sale: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _onProceed() async {
+    if (_selectedProducts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add at least one product'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 2)); // Simulate loading time
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentMethodScreen(
-          totalAmount: _calculateTotal(),
+    // Navigate to payment method screen
+    if (mounted) {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentMethodScreen(
+            totalAmount: _calculateTotal(),
+            onPaymentComplete: (paymentMethod, paymentDetails) async {
+              await _createSale(paymentMethod, paymentDetails);
+            },
+          ),
         ),
-      ),
-    );
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (result == true) {
+        Navigator.pop(context); // Close the form after successful payment
+      }
+    }
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class PaymentMethodWidget extends StatefulWidget {
+class PaymentMethodWidget extends StatelessWidget {
   final Function(String) onPaymentMethodSelected;
 
   const PaymentMethodWidget({
@@ -9,73 +9,93 @@ class PaymentMethodWidget extends StatefulWidget {
   });
 
   @override
-  State<PaymentMethodWidget> createState() => _PaymentMethodWidgetState();
-}
-
-class _PaymentMethodWidgetState extends State<PaymentMethodWidget> {
-  String _selectedPaymentMethod = 'Orange Money';
-
-  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Select Payment Method',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Select Payment Method',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+        ),
+        const SizedBox(height: 16),
+        _buildPaymentMethodCard(
+          'Orange Money',
+          'assets/images/orange-money-logo.png',
+          'Pay with Orange Money',
+          context,
+        ),
+        const SizedBox(height: 12),
+        _buildPaymentMethodCard(
+          'Pay Smoll Smoll',
+          'assets/images/cash.png',
+          'Pay in installments',
+          context,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentMethodCard(
+    String method,
+    String imageAsset,
+    String description,
+    BuildContext context,
+  ) {
+    return InkWell(
+      onTap: () => onPaymentMethodSelected(method),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 5,
             ),
-          ),
-          const SizedBox(height: 8),
-          RadioListTile<String>(
-            title: const Text('Orange Money'),
-            value: 'Orange Money',
-            groupValue: _selectedPaymentMethod,
-            onChanged: (value) {
-              setState(() {
-                _selectedPaymentMethod = value!;
-                widget.onPaymentMethodSelected(value);
-              });
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('Afrimoney'),
-            value: 'Afrimoney',
-            groupValue: _selectedPaymentMethod,
-            onChanged: (value) {
-              setState(() {
-                _selectedPaymentMethod = value!;
-                widget.onPaymentMethodSelected(value);
-              });
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('Pay Smoll Smoll'),
-            value: 'Pay Smoll Smoll',
-            groupValue: _selectedPaymentMethod,
-            onChanged: (value) {
-              setState(() {
-                _selectedPaymentMethod = value!;
-                widget.onPaymentMethodSelected(value);
-              });
-            },
-          ),
-        ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Image.asset(
+              imageAsset,
+              width: 48,
+              height: 48,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    method,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey,
+              size: 16,
+            ),
+          ],
+        ),
       ),
     );
   }

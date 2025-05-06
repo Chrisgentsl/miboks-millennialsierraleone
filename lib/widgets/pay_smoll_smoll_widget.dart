@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class PaySmollSmollWidget extends StatefulWidget {
-  final Function(String, String, Map<String, dynamic>) onDetailsSubmitted;
   final double totalAmount;
+  final Function(String, String, Map<String, dynamic>) onDetailsSubmitted;
 
   const PaySmollSmollWidget({
     super.key,
-    required this.onDetailsSubmitted,
     required this.totalAmount,
+    required this.onDetailsSubmitted,
   });
 
   @override
@@ -15,199 +15,197 @@ class PaySmollSmollWidget extends StatefulWidget {
 }
 
 class _PaySmollSmollWidgetState extends State<PaySmollSmollWidget> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _installmentAmountController = TextEditingController();
-  final TextEditingController _durationController = TextEditingController();
-  
-  String _selectedPaymentType = 'Monthly';
-  int _numberOfInstallments = 1;
-  double _installmentAmount = 0.0;
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  int _selectedInstallments = 3;
+  bool _isSubmitting = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _calculateInstallment();
-  }
-
-  void _calculateInstallment() {
-    int duration = int.tryParse(_durationController.text) ?? 1;
-    if (duration < 1) duration = 1;
-    
-    setState(() {
-      _numberOfInstallments = duration;
-      _installmentAmount = widget.totalAmount / duration;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Pay Smoll Smoll Payment',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _nameController,
-          decoration: const InputDecoration(
-            labelText: 'Customer Name',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.person, color: Color(0xFF6621DC)),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter customer name';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _phoneController,
-          keyboardType: TextInputType.number,
-          maxLength: 8,
-          decoration: const InputDecoration(
-            labelText: 'Phone Number',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.phone, color: Color(0xFF6621DC)),
-            prefixText: '+232 ',
-            counterText: '',
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter a phone number';
-            }
-            if (value.length != 8) {
-              return 'Phone number must be 8 digits';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Total Amount: SLL ${widget.totalAmount.toStringAsFixed(2)}',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: RadioListTile<String>(
-                title: const Text('Monthly'),
-                value: 'Monthly',
-                groupValue: _selectedPaymentType,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedPaymentType = value!;
-                    _calculateInstallment();
-                  });
-                },
-              ),
-            ),
-            Expanded(
-              child: RadioListTile<String>(
-                title: const Text('Daily'),
-                value: 'Daily',
-                groupValue: _selectedPaymentType,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedPaymentType = value!;
-                    _calculateInstallment();
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _durationController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: _selectedPaymentType == 'Monthly' 
-              ? 'Number of Months' 
-              : 'Number of Days',
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF6621DC)),
-          ),
-          onChanged: (_) => _calculateInstallment(),
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _installmentAmountController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: _selectedPaymentType == 'Monthly' 
-              ? 'Amount per Month' 
-              : 'Amount per Day',
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.money, color: Color(0xFF6621DC)),
-          ),
-          onChanged: (value) {
-            double amount = double.tryParse(value) ?? 0.0;
-            if (amount > 0) {
-              setState(() {
-                _installmentAmount = amount;
-                _numberOfInstallments = (widget.totalAmount / amount).ceil();
-              });
-            }
-          },
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Payment Summary',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Payment Type: $_selectedPaymentType',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                'Number of Installments: $_numberOfInstallments',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                '${_selectedPaymentType == 'Monthly' ? 'Monthly' : 'Daily'} Amount: SLL ${_installmentAmount.toStringAsFixed(2)}',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                'Total Amount: SLL ${widget.totalAmount.toStringAsFixed(2)}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  final List<int> _installmentOptions = [2, 3, 4, 6];
 
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _installmentAmountController.dispose();
-    _durationController.dispose();
     super.dispose();
+  }
+
+  double get _installmentAmount {
+    return widget.totalAmount / _selectedInstallments;
+  }
+
+  Future<void> _submitPayment() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final paymentDetails = {
+        'totalInstallments': _selectedInstallments,
+        'installmentAmount': _installmentAmount,
+        'remainingAmount': widget.totalAmount,
+        'paidInstallments': 0,
+        'nextPaymentDue': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+      };
+
+      widget.onDetailsSubmitted(
+        _nameController.text,
+        _phoneController.text,
+        paymentDetails,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Pay SLL ${widget.totalAmount.toStringAsFixed(2)} in installments',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Customer Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Name is required';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  hintText: '076123456',
+                  prefixText: '+232 ',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Phone number is required';
+                  }
+                  if (value.length != 9) {
+                    return 'Phone number must be 9 digits';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Number of Installments',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<int>(
+                value: _selectedInstallments,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+                items: _installmentOptions.map((months) {
+                  return DropdownMenuItem(
+                    value: months,
+                    child: Text('$months months'),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedInstallments = value;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Monthly Payment:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'SLL ${_installmentAmount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF6621DC),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submitPayment,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: const Color(0xFF6621DC),
+                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Confirm Payment Plan',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'By confirming, you agree to pay the installments on time. Late payments may affect your credit score.',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

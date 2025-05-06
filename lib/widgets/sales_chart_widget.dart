@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/sales_model.dart';
-import '../services/sales_service.dart';
 import 'package:intl/intl.dart';
 
 class SalesChartWidget extends StatelessWidget {
@@ -34,9 +33,26 @@ class SalesChartWidget extends StatelessWidget {
       ..sort((a, b) => a.key.compareTo(b.key));
 
     // Create spots
-    return sortedEntries.asMap().entries.map((entry) {
-      return FlSpot(entry.key.toDouble(), entry.value.value);
-    }).toList();
+    return List.generate(sortedEntries.length, (index) {
+      return FlSpot(index.toDouble(), sortedEntries[index].value);
+    });
+  }
+
+  Widget getTitles(double value, TitleMeta meta) {
+    final spots = _generateSpots();
+    if (value.toInt() >= spots.length) return const SizedBox.shrink();
+
+    final date = sales[value.toInt()].timestamp;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        DateFormat('MM/dd').format(date),
+        style: const TextStyle(
+          color: Colors.grey,
+          fontSize: 12,
+        ),
+      ),
+    );
   }
 
   @override
@@ -69,47 +85,25 @@ class SalesChartWidget extends StatelessWidget {
             height: 200,
             child: LineChart(
               LineChartData(
-                gridData: FlGridData(show: false),
+                gridData: const FlGridData(show: false),
                 titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
+                  leftTitles: const AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 40,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          NumberFormat.compact().format(value),
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        );
-                      },
                     ),
                   ),
-                  rightTitles: AxisTitles(
+                  rightTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
-                  topTitles: AxisTitles(
+                  topTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        final date = DateTime.fromMillisecondsSinceEpoch(
-                          value.toInt(),
-                        );
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            DateFormat('MM/dd').format(date),
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                            ),
-                          ),
-                        );
-                      },
+                      getTitlesWidget: getTitles,
+                      reservedSize: 40,
                     ),
                   ),
                 ),
@@ -118,13 +112,22 @@ class SalesChartWidget extends StatelessWidget {
                   LineChartBarData(
                     spots: _generateSpots(),
                     isCurved: true,
-                    color: color,
+                    gradient: LinearGradient(
+                      colors: [color.withOpacity(0.8), color],
+                    ),
                     barWidth: 3,
                     isStrokeCapRound: true,
-                    dotData: FlDotData(show: false),
+                    dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: color.withOpacity(0.15),
+                      gradient: LinearGradient(
+                        colors: [
+                          color.withOpacity(0.15),
+                          color.withOpacity(0.05),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
                 ],
