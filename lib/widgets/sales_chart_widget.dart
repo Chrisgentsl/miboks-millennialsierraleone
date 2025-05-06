@@ -18,7 +18,7 @@ class SalesChartWidget extends StatelessWidget {
   List<FlSpot> _generateSpots() {
     // Group sales by date
     final Map<DateTime, double> dailyTotals = {};
-    
+
     for (var sale in sales) {
       final date = DateTime(
         sale.timestamp.year,
@@ -29,8 +29,8 @@ class SalesChartWidget extends StatelessWidget {
     }
 
     // Convert to list and sort by date
-    final sortedEntries = dailyTotals.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
+    final sortedEntries =
+        dailyTotals.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
 
     // Create spots
     return List.generate(sortedEntries.length, (index) {
@@ -47,10 +47,7 @@ class SalesChartWidget extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8),
       child: Text(
         DateFormat('MM/dd').format(date),
-        style: const TextStyle(
-          color: Colors.grey,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: Colors.grey, fontSize: 12),
       ),
     );
   }
@@ -75,10 +72,7 @@ class SalesChartWidget extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -88,10 +82,7 @@ class SalesChartWidget extends StatelessWidget {
                 gridData: const FlGridData(show: false),
                 titlesData: FlTitlesData(
                   leftTitles: const AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                    ),
+                    sideTitles: SideTitles(showTitles: true, reservedSize: 40),
                   ),
                   rightTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),

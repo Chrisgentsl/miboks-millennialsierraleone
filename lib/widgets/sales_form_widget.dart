@@ -13,17 +13,19 @@ class SalesFormWidget extends StatefulWidget {
   _SalesFormWidgetState createState() => _SalesFormWidgetState();
 }
 
-class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProviderStateMixin {
+class _SalesFormWidgetState extends State<SalesFormWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   final ProductService _productService = ProductService();
   final SalesService _salesService = SalesService();
-  
+
   List<ProductModel> _products = [];
   TextEditingController _priceController = TextEditingController();
   List<Map<String, dynamic>> _selectedProducts = [];
   bool _isGstEnabled = false;
   bool _isLoading = false;
+  ProductModel? _selectedProduct;
 
   @override
   void initState() {
@@ -49,7 +51,10 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
   }
 
   double _calculateSubtotal() {
-    return _selectedProducts.fold(0, (sum, item) => sum + (item['price'] * item['quantity']));
+    return _selectedProducts.fold(
+      0,
+      (sum, item) => sum + (item['price'] * item['quantity']),
+    );
   }
 
   double _calculateGst() {
@@ -71,14 +76,20 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
     });
   }
 
-  Future<void> _createSale(String paymentMethod, Map<String, dynamic>? paymentDetails) async {
+  Future<void> _createSale(
+    String paymentMethod,
+    Map<String, dynamic>? paymentDetails,
+  ) async {
     try {
-      final saleItems = _selectedProducts.map((product) => 
-        SaleItem(
-          productId: product['id'],
-          quantity: product['quantity'],
-        )
-      ).toList();
+      final saleItems =
+          _selectedProducts
+              .map(
+                (product) => SaleItem(
+                  productId: product['id'],
+                  quantity: product['quantity'],
+                ),
+              )
+              .toList();
 
       final sale = SaleModel(
         id: '', // This will be set by Firestore
@@ -91,7 +102,7 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
       );
 
       await _salesService.createSale(sale);
-      
+
       if (mounted) {
         Navigator.of(context).pop(); // Close the form
         ScaffoldMessenger.of(context).showSnackBar(
@@ -133,12 +144,13 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
       final result = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PaymentMethodScreen(
-            totalAmount: _calculateTotal(),
-            onPaymentComplete: (paymentMethod, paymentDetails) async {
-              await _createSale(paymentMethod, paymentDetails);
-            },
-          ),
+          builder:
+              (context) => PaymentMethodScreen(
+                totalAmount: _calculateTotal(),
+                onPaymentComplete: (paymentMethod, paymentDetails) async {
+                  await _createSale(paymentMethod, paymentDetails);
+                },
+              ),
         ),
       );
 
@@ -196,17 +208,22 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<ProductModel>(
+              value: _selectedProduct,
               decoration: const InputDecoration(
                 labelText: 'Select Product',
                 border: OutlineInputBorder(),
               ),
-              items: _products.map((product) {
-                return DropdownMenuItem(
-                  value: product,
-                  child: Text(product.name),
-                );
-              }).toList(),
+              items:
+                  _products.map((product) {
+                    return DropdownMenuItem<ProductModel>(
+                      value: product,
+                      child: Text(product.name),
+                    );
+                  }).toList(),
               onChanged: (value) {
+                setState(() {
+                  _selectedProduct = value;
+                });
                 if (value != null) {
                   final quantityController = TextEditingController();
                   showDialog(
@@ -229,7 +246,8 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              final quantity = int.tryParse(quantityController.text) ?? 0;
+                              final quantity =
+                                  int.tryParse(quantityController.text) ?? 0;
                               if (quantity > 0) {
                                 _addProduct(value, quantity);
                                 Navigator.pop(context);
@@ -256,7 +274,9 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
                   return ListTile(
                     title: Text(item['name']),
                     subtitle: Text('Quantity: ${item['quantity']}'),
-                    trailing: Text('SLL ${(item['price'] * item['quantity']).toStringAsFixed(2)}'),
+                    trailing: Text(
+                      'SLL ${(item['price'] * item['quantity']).toStringAsFixed(2)}',
+                    ),
                   );
                 },
               ),
@@ -289,10 +309,7 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
             const SizedBox(height: 16),
             if (_isLoading)
               const Center(
-                child: SpinKitCircle(
-                  color: Color(0xFF6621DC),
-                  size: 50.0,
-                ),
+                child: SpinKitCircle(color: Color(0xFF6621DC), size: 50.0),
               )
             else
               SizedBox(
@@ -307,10 +324,7 @@ class _SalesFormWidgetState extends State<SalesFormWidget> with SingleTickerProv
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'Proceed',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  child: const Text('Proceed', style: TextStyle(fontSize: 16)),
                 ),
               ),
           ],

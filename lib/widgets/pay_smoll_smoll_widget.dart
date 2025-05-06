@@ -47,7 +47,8 @@ class _PaySmollSmollWidgetState extends State<PaySmollSmollWidget> {
         'installmentAmount': _installmentAmount,
         'remainingAmount': widget.totalAmount,
         'paidInstallments': 0,
-        'nextPaymentDue': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+        'nextPaymentDue':
+            DateTime.now().add(const Duration(days: 30)).toIso8601String(),
       };
 
       widget.onDetailsSubmitted(
@@ -119,23 +120,19 @@ class _PaySmollSmollWidgetState extends State<PaySmollSmollWidget> {
               const SizedBox(height: 16),
               const Text(
                 'Number of Installments',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<int>(
                 value: _selectedInstallments,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
-                items: _installmentOptions.map((months) {
-                  return DropdownMenuItem(
-                    value: months,
-                    child: Text('$months months'),
-                  );
-                }).toList(),
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+                items:
+                    _installmentOptions.map((months) {
+                      return DropdownMenuItem(
+                        value: months,
+                        child: Text('$months months'),
+                      );
+                    }).toList(),
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -156,9 +153,7 @@ class _PaySmollSmollWidgetState extends State<PaySmollSmollWidget> {
                   children: [
                     const Text(
                       'Monthly Payment:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'SLL ${_installmentAmount.toStringAsFixed(2)}',
@@ -179,28 +174,28 @@ class _PaySmollSmollWidgetState extends State<PaySmollSmollWidget> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: const Color(0xFF6621DC),
                   ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  child:
+                      _isSubmitting
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : const Text(
+                            'Confirm Payment Plan',
+                            style: TextStyle(fontSize: 16),
                           ),
-                        )
-                      : const Text(
-                          'Confirm Payment Plan',
-                          style: TextStyle(fontSize: 16),
-                        ),
                 ),
               ),
               const SizedBox(height: 16),
               const Text(
                 'By confirming, you agree to pay the installments on time. Late payments may affect your credit score.',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),

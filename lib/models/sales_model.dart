@@ -22,9 +22,10 @@ class SaleModel {
   factory SaleModel.fromMap(Map<String, dynamic> data, String id) {
     return SaleModel(
       id: id,
-      items: (data['items'] as List<dynamic>)
-          .map((item) => SaleItem.fromMap(item))
-          .toList(),
+      items:
+          (data['items'] as List<dynamic>)
+              .map((item) => SaleItem.fromMap(item))
+              .toList(),
       timestamp: (data['timestamp'] as Timestamp).toDate(),
       status: data['status'] ?? 'pending',
       paymentMethod: data['paymentMethod'],
@@ -69,22 +70,13 @@ class SaleItem {
   final String productId;
   final int quantity;
 
-  SaleItem({
-    required this.productId,
-    required this.quantity,
-  });
+  SaleItem({required this.productId, required this.quantity});
 
   factory SaleItem.fromMap(Map<String, dynamic> data) {
-    return SaleItem(
-      productId: data['productId'],
-      quantity: data['quantity'],
-    );
+    return SaleItem(productId: data['productId'], quantity: data['quantity']);
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'productId': productId,
-      'quantity': quantity,
-    };
+    return {'productId': productId, 'quantity': quantity};
   }
 }

@@ -19,13 +19,15 @@ class SalesService {
       await _firestore.runTransaction((transaction) async {
         // First, verify all products and their quantities
         for (var item in sale.items) {
-          final productRef = _firestore.collection('products').doc(item.productId);
+          final productRef = _firestore
+              .collection('products')
+              .doc(item.productId);
           final productDoc = await transaction.get(productRef);
-          
+
           if (!productDoc.exists) {
             throw Exception('Product ${item.productId} not found');
           }
-          
+
           final currentQuantity = productDoc.data()?['quantity'] ?? 0;
           if (currentQuantity < item.quantity) {
             throw Exception('Insufficient stock for product ${item.productId}');
@@ -44,7 +46,9 @@ class SalesService {
 
         // Update product quantities
         for (var item in sale.items) {
-          final productRef = _firestore.collection('products').doc(item.productId);
+          final productRef = _firestore
+              .collection('products')
+              .doc(item.productId);
           transaction.update(productRef, {
             'quantity': FieldValue.increment(-item.quantity),
             'updatedAt': FieldValue.serverTimestamp(),
@@ -55,7 +59,9 @@ class SalesService {
       throw Exception('Authentication error: ${e.message}');
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
-        throw Exception('Permission denied: Please ensure you are logged in with the correct account');
+        throw Exception(
+          'Permission denied: Please ensure you are logged in with the correct account',
+        );
       }
       throw Exception('Failed to create sale: ${e.message}');
     } catch (e) {
@@ -81,18 +87,22 @@ class SalesService {
         });
   }
 
-  Future<List<SaleModel>> getSalesByDateRange(DateTime start, DateTime end) async {
+  Future<List<SaleModel>> getSalesByDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
     final user = _authService.currentUser;
     if (user == null) {
       return [];
     }
 
-    final snapshot = await _firestore
-        .collection('sales')
-        .where('userId', isEqualTo: user.uid)
-        .where('timestamp', isGreaterThanOrEqualTo: start)
-        .where('timestamp', isLessThanOrEqualTo: end)
-        .get();
+    final snapshot =
+        await _firestore
+            .collection('sales')
+            .where('userId', isEqualTo: user.uid)
+            .where('timestamp', isGreaterThanOrEqualTo: start)
+            .where('timestamp', isLessThanOrEqualTo: end)
+            .get();
 
     return snapshot.docs
         .map((doc) => SaleModel.fromMap(doc.data(), doc.id))
@@ -106,13 +116,10 @@ class SalesService {
     }
 
     try {
-      await _firestore
-          .collection('sales')
-          .doc(saleId)
-          .update({
-            'status': status,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          });
+      await _firestore.collection('sales').doc(saleId).update({
+        'status': status,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       throw Exception('Failed to update sale status: ${e.toString()}');
     }
@@ -141,7 +148,11 @@ class SalesService {
   Stream<List<SaleModel>> getWeeklySales() {
     final now = DateTime.now();
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    final startDate = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+    final startDate = DateTime(
+      startOfWeek.year,
+      startOfWeek.month,
+      startOfWeek.day,
+    );
 
     return _firestore
         .collection('sales')
@@ -189,24 +200,21 @@ class SalesService {
 
   // Get payment method statistics
   Stream<Map<String, int>> getPaymentMethodStats() {
-    return _firestore
-        .collection('sales')
-        .snapshots()
-        .map((snapshot) {
-          Map<String, int> stats = {
-            'Orange Money': 0,
-            'Afrimoney': 0,
-            'Pay Smoll Smoll': 0,
-          };
+    return _firestore.collection('sales').snapshots().map((snapshot) {
+      Map<String, int> stats = {
+        'Orange Money': 0,
+        'Afrimoney': 0,
+        'Pay Smoll Smoll': 0,
+      };
 
-          for (var doc in snapshot.docs) {
-            final data = doc.data();
-            final method = data['paymentMethod'] as String;
-            stats[method] = (stats[method] ?? 0) + 1;
-          }
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final method = data['paymentMethod'] as String;
+        stats[method] = (stats[method] ?? 0) + 1;
+      }
 
-          return stats;
-        });
+      return stats;
+    });
   }
 
   double calculateTotalAmount(List<SaleModel> sales) {

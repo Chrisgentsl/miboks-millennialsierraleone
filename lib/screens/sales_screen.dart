@@ -5,6 +5,7 @@ import '../widgets/sales_analytics_card.dart';
 import '../widgets/sales_form_widget.dart';
 import '../models/sales_model.dart';
 import '../widgets/sales_chart_widget.dart';
+import '../widgets/sales_transactions_widget.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -15,7 +16,7 @@ class SalesScreen extends StatefulWidget {
 
 class _SalesScreenState extends State<SalesScreen> {
   final SalesService _salesService = SalesService();
-  
+
   Widget _buildAnalyticsDashboard() {
     return StreamBuilder<List<SaleModel>>(
       stream: _salesService.getTodaySales(),
@@ -33,18 +34,30 @@ class _SalesScreenState extends State<SalesScreen> {
                       stream: _salesService.getPaymentMethodStats(),
                       builder: (context, paymentStatsSnapshot) {
                         // Calculate values
-                        final todayTotal = todaySalesSnapshot.hasData 
-                            ? _salesService.calculateTotalAmount(todaySalesSnapshot.data!)
-                            : 0.0;
-                        final weeklyTotal = weeklySalesSnapshot.hasData
-                            ? _salesService.calculateTotalAmount(weeklySalesSnapshot.data!)
-                            : 0.0;
-                        final monthlyTotal = monthlySalesSnapshot.hasData
-                            ? _salesService.calculateTotalAmount(monthlySalesSnapshot.data!)
-                            : 0.0;
-                        final dueAmount = duePaymentsSnapshot.hasData
-                            ? _salesService.calculateTotalAmount(duePaymentsSnapshot.data!)
-                            : 0.0;
+                        final todayTotal =
+                            todaySalesSnapshot.hasData
+                                ? _salesService.calculateTotalAmount(
+                                  todaySalesSnapshot.data!,
+                                )
+                                : 0.0;
+                        final weeklyTotal =
+                            weeklySalesSnapshot.hasData
+                                ? _salesService.calculateTotalAmount(
+                                  weeklySalesSnapshot.data!,
+                                )
+                                : 0.0;
+                        final monthlyTotal =
+                            monthlySalesSnapshot.hasData
+                                ? _salesService.calculateTotalAmount(
+                                  monthlySalesSnapshot.data!,
+                                )
+                                : 0.0;
+                        final dueAmount =
+                            duePaymentsSnapshot.hasData
+                                ? _salesService.calculateTotalAmount(
+                                  duePaymentsSnapshot.data!,
+                                )
+                                : 0.0;
 
                         return SingleChildScrollView(
                           padding: const EdgeInsets.all(16),
@@ -55,20 +68,24 @@ class _SalesScreenState extends State<SalesScreen> {
                                   Expanded(
                                     child: SalesAnalyticsCard(
                                       title: "Today's Sales",
-                                      value: 'SLL ${todayTotal.toStringAsFixed(2)}',
+                                      value:
+                                          'SLL ${todayTotal.toStringAsFixed(2)}',
                                       icon: Icons.today,
                                       color: const Color(0xFF6621DC),
-                                      subtitle: '${todaySalesSnapshot.data?.length ?? 0} sales today',
+                                      subtitle:
+                                          '${todaySalesSnapshot.data?.length ?? 0} sales today',
                                     ),
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: SalesAnalyticsCard(
                                       title: 'Weekly Sales',
-                                      value: 'SLL ${weeklyTotal.toStringAsFixed(2)}',
+                                      value:
+                                          'SLL ${weeklyTotal.toStringAsFixed(2)}',
                                       icon: Icons.calendar_view_week,
                                       color: const Color(0xFF1E88E5),
-                                      subtitle: '${weeklySalesSnapshot.data?.length ?? 0} sales this week',
+                                      subtitle:
+                                          '${weeklySalesSnapshot.data?.length ?? 0} sales this week',
                                     ),
                                   ),
                                 ],
@@ -79,33 +96,39 @@ class _SalesScreenState extends State<SalesScreen> {
                                   Expanded(
                                     child: SalesAnalyticsCard(
                                       title: 'Monthly Sales',
-                                      value: 'SLL ${monthlyTotal.toStringAsFixed(2)}',
+                                      value:
+                                          'SLL ${monthlyTotal.toStringAsFixed(2)}',
                                       icon: Icons.calendar_month,
                                       color: const Color(0xFF43A047),
-                                      subtitle: '${monthlySalesSnapshot.data?.length ?? 0} sales this month',
+                                      subtitle:
+                                          '${monthlySalesSnapshot.data?.length ?? 0} sales this month',
                                     ),
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: SalesAnalyticsCard(
                                       title: 'Due Payments',
-                                      value: 'SLL ${dueAmount.toStringAsFixed(2)}',
+                                      value:
+                                          'SLL ${dueAmount.toStringAsFixed(2)}',
                                       icon: Icons.payment,
                                       color: const Color(0xFFE53935),
-                                      subtitle: '${duePaymentsSnapshot.data?.length ?? 0} pending payments',
+                                      subtitle:
+                                          '${duePaymentsSnapshot.data?.length ?? 0} pending payments',
                                     ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 24),
-                              if (weeklySalesSnapshot.hasData && weeklySalesSnapshot.data!.isNotEmpty)
+                              if (weeklySalesSnapshot.hasData &&
+                                  weeklySalesSnapshot.data!.isNotEmpty)
                                 SalesChartWidget(
                                   sales: weeklySalesSnapshot.data!,
                                   color: const Color(0xFF1E88E5),
                                   title: 'Weekly Sales Trend',
                                 ),
                               const SizedBox(height: 24),
-                              if (monthlySalesSnapshot.hasData && monthlySalesSnapshot.data!.isNotEmpty)
+                              if (monthlySalesSnapshot.hasData &&
+                                  monthlySalesSnapshot.data!.isNotEmpty)
                                 SalesChartWidget(
                                   sales: monthlySalesSnapshot.data!,
                                   color: const Color(0xFF43A047),
@@ -121,6 +144,59 @@ class _SalesScreenState extends State<SalesScreen> {
               },
             );
           },
+        );
+      },
+    );
+  }
+
+  Widget _buildSalesSummary() {
+    return StreamBuilder<List<SaleModel>>(
+      stream: _salesService.getSales(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final sales = snapshot.data!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sales Summary',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: sales.length > 3 ? 3 : sales.length,
+              itemBuilder: (context, index) {
+                final sale = sales[index];
+                return ListTile(
+                  title: Text('Sale #${sale.id.substring(0, 8)}'),
+                  subtitle: Text(
+                    'Le ${sale.totalAmount.toStringAsFixed(2)} - ${sale.timestamp.toLocal()}'.split(' ')[0],
+                  ),
+                );
+              },
+            ),
+            if (sales.length > 3)
+              TextButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (BuildContext context) {
+                      return SalesTransactionsWidget(sales: sales);
+                    },
+                  );
+                },
+                child: const Text('View All'),
+              ),
+          ],
         );
       },
     );
@@ -157,10 +233,7 @@ class _SalesScreenState extends State<SalesScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const LogoWidget(
-          size: 60,
-          animate: false,
-        ),
+        title: const LogoWidget(size: 60, animate: false),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
@@ -178,24 +251,16 @@ class _SalesScreenState extends State<SalesScreen> {
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xFF6621DC),
-              ),
+              decoration: BoxDecoration(color: Color(0xFF6621DC)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  LogoWidget(
-                    size: 50,
-                    animate: false,
-                  ),
+                  LogoWidget(size: 50, animate: false),
                   SizedBox(height: 8),
                   Text(
                     'Menu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 24),
                   ),
                 ],
               ),
@@ -229,12 +294,16 @@ class _SalesScreenState extends State<SalesScreen> {
       ),
       body: Stack(
         children: [
-          _buildAnalyticsDashboard(),
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: _buildAddItemBubble(),
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildAnalyticsDashboard(),
+                const SizedBox(height: 24),
+                _buildSalesSummary(),
+              ],
+            ),
           ),
+          Positioned(bottom: 16, right: 16, child: _buildAddItemBubble()),
         ],
       ),
     );

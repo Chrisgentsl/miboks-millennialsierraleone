@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class OrangeMoneyWidget extends StatelessWidget {
   final Function(String, String) onDetailsSubmitted;
 
-  const OrangeMoneyWidget({
-    super.key,
-    required this.onDetailsSubmitted,
-  });
+  const OrangeMoneyWidget({super.key, required this.onDetailsSubmitted});
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +15,7 @@ class OrangeMoneyWidget extends StatelessWidget {
       children: [
         const Text(
           'Orange Money Payment',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         TextFormField(

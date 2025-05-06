@@ -12,7 +12,8 @@ class OrangeMoneyPaymentWidget extends StatefulWidget {
   });
 
   @override
-  State<OrangeMoneyPaymentWidget> createState() => _OrangeMoneyPaymentWidgetState();
+  State<OrangeMoneyPaymentWidget> createState() =>
+      _OrangeMoneyPaymentWidgetState();
 }
 
 class _OrangeMoneyPaymentWidgetState extends State<OrangeMoneyPaymentWidget> {
@@ -55,7 +56,10 @@ class _OrangeMoneyPaymentWidgetState extends State<OrangeMoneyPaymentWidget> {
     try {
       // In a real app, you would integrate with Orange Money API here
       await Future.delayed(const Duration(seconds: 2)); // Simulated API call
-      widget.onPhoneNumberSubmitted(_nameController.text, _phoneController.text);
+      widget.onPhoneNumberSubmitted(
+        _nameController.text,
+        _phoneController.text,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -126,30 +130,32 @@ class _OrangeMoneyPaymentWidgetState extends State<OrangeMoneyPaymentWidget> {
                   onPressed: _isSubmitting ? null : _submitPayment,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: const Color(0xFFFF6600), // Orange Money color
+                    backgroundColor: const Color(
+                      0xFFFF6600,
+                    ), // Orange Money color
                   ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  child:
+                      _isSubmitting
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : const Text(
+                            'Pay Now',
+                            style: TextStyle(fontSize: 16),
                           ),
-                        )
-                      : const Text(
-                          'Pay Now',
-                          style: TextStyle(fontSize: 16),
-                        ),
                 ),
               ),
               const SizedBox(height: 16),
               const Text(
                 'You will receive an Orange Money prompt on your phone to complete the payment.',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),

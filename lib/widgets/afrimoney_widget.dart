@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class AfrimoneyWidget extends StatelessWidget {
   final Function(String, String) onDetailsSubmitted;
 
-  const AfrimoneyWidget({
-    super.key,
-    required this.onDetailsSubmitted,
-  });
+  const AfrimoneyWidget({super.key, required this.onDetailsSubmitted});
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +15,7 @@ class AfrimoneyWidget extends StatelessWidget {
       children: [
         const Text(
           'Afrimoney Payment',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         TextFormField(
